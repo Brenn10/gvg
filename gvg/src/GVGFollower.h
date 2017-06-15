@@ -24,16 +24,16 @@
 
 /* The (at least three) objects that are going to define a meetpoint need to have
    closest point bearings that differ at least by this angle. In rad. */
-#define MEETPOINT_BEARING_ANGLE_DIFF .7
+#define MEETPOINT_BEARING_ANGLE_DIFF 1.0471975512
 
 /* Minimum bearing difference between the two obstacles that will be used in the
    GVG midline definition, while following a GVG edge. */
 #define SAME_OBJECT_MIN_BEARING 1.0471975512
 
-/* Less than 10cm away from obstacles is considered dangerous so the robot should 
+/* Less than 20cm away from obstacles is considered dangerous so the robot should 
  * drastically modify its trajectory.  
  */
-#define CLOSEST_ALLOWABLE_DIST 0.1  
+#define CLOSEST_ALLOWABLE_DIST 0.2 
 
 class GVGFollower {
  public:
