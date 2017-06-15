@@ -1,5 +1,5 @@
 <launch>	
-      <remap from="/odom" to="/indoor/gvg/odom_combined"/>
+      <remap from="/odom" to="/indoor/odom"/>
   <node name="remapper" pkg="remapper" type="remapper" output="screen" args=" ">
     <param name="reverse_laser" value="false" type="bool" />
 

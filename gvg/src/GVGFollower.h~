@@ -24,7 +24,7 @@
 
 /* The (at least three) objects that are going to define a meetpoint need to have
    closest point bearings that differ at least by this angle. In rad. */
-#define MEETPOINT_BEARING_ANGLE_DIFF .7
+#define MEETPOINT_BEARING_ANGLE_DIFF 1.000
 
 /* Minimum bearing difference between the two obstacles that will be used in the
    GVG midline definition, while following a GVG edge. */
