@@ -68,9 +68,9 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 
-find_package(Eigen REQUIRED)
-include_directories(${Eigen_INCLUDE_DIRS})
-add_definitions(${EIGEN_DEFINITIONS})
+#find_package(Eigen REQUIRED)
+#include_directories(${Eigen_INCLUDE_DIRS})
+#add_definitions(${EIGEN_DEFINITIONS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 #SET ( CMAKE_CXX_FLAGS "-Wall -Wno-deprecated -g" )
 
@@ -85,8 +85,8 @@ add_executable(localizerGVGNode src/main.cpp src/localizerGVG.cpp)
 add_executable(localizer_viz  src/viz.cpp)
 
 target_link_libraries(localizerGVGNode ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
-add_dependencies(localizerGVGNode ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(localizerGVGNode ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(localizer_viz ${catkin_LIBRARIES} ${BULLET_LIBRARIES} ${OpenCV_LIBRARIES})
-add_dependencies(localizer_viz ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(localizer_viz ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)
 
 

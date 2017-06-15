@@ -12,7 +12,7 @@
     <param name="relocalize_epsilon" type="double" value="0.1" />
     <param name="closest_distance_threshold" value="0.2" type="double" />
     <param name="exploration_policy" value="1" />    <!-- random walk = 0, ear-based = 1, user chosen = 2 -->
-    <param name="vertex_matching_policy" value="1" />       <!-- strictly odometry based = 0, full oracle = 1, vertex matching = 2 -->
+    <param name="vertex_matching_policy" value="2" />       <!-- strictly odometry based = 0, full oracle = 1, vertex matching = 2 -->
     <param name="edge_length_threshold" value="1.0" type="double" />   <!-- cut-off threshold when comparing edge lengths (bearing matching) -->
   </node>
 </launch>

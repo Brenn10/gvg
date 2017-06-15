@@ -21,12 +21,13 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-find_package(Eigen REQUIRED)
-include_directories(${Eigen_INCLUDE_DIRS})
-add_definitions(${EIGEN_DEFINITIONS})
+#find_package(Eigen REQUIRED)
+#include_directories(${Eigen_INCLUDE_DIRS})
+#add_definitions(${EIGEN_DEFINITIONS})
 
 add_executable(map_handler src/map_handler.cpp)
 
 target_link_libraries(map_handler
   ${catkin_LIBRARIES}
 )
+add_dependencies(map_handler ${catkin_LIBRARIES})

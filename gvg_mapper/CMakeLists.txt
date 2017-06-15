@@ -67,9 +67,9 @@ catkin_package(CATKIN_DEPENDS
 
 include_directories(${laser_node_INCLUDE_DIRS})
 
-find_package(Eigen REQUIRED)
-add_definitions(${EIGEN_DEFINITIONS})
-include_directories(${Eigen_INCLUDE_DIRS})
+#find_package(Eigen REQUIRED)
+#add_definitions(${EIGEN_DEFINITIONS})
+#include_directories(${Eigen_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${catkin_INCLUDE_DIRS})
 #SET ( CMAKE_CXX_FLAGS "-Wall -Wno-deprecated -g" )
@@ -88,8 +88,8 @@ include_directories(${catkin_INCLUDE_DIRS})
 add_executable(gvg_mapper src/main.cpp src/GVGGraph.cpp)
 add_executable(gvg_mapper_viz src/viz.cpp)
 target_link_libraries(gvg_mapper ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
-add_dependencies(gvg_mapper ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(gvg_mapper ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(gvg_mapper_viz ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
-add_dependencies(gvg_mapper_viz ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(gvg_mapper_viz  ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)
 
 message("CATKIN LIBRARIES ARE:" ${catkin_LIBRARIES})

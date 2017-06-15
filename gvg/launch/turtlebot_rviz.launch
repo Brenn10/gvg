@@ -1,6 +1,9 @@
 <launch>
+  <node name="remapper" pkg="remapper" type="remapper" output="screen" args=" "/>
 
+  <include file="$(find laser_node)/launch/laser_utils_hokuyo.launch" />
   <include file="$(find localizer)/launch/viz.launch" />
-  <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find laser_node)/stage.rviz"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen" args="-d $(find laser_node)/turtlebot.rviz"/>
 
 </launch>

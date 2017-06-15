@@ -14,7 +14,7 @@
 #include "gvg_mapper/GVGEdgeMsg.h"
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <unsupported/Eigen/NonLinearOptimization>
+//#include <eigen2/unsupported/Eigen/NonLinearOptimization>
 #include <BasicGeometry.h>
 #include "gvg_mapper/AddMeetpoint.h"
 #include "gvg_mapper/AddEndpoint.h"

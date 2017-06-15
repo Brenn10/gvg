@@ -1,0 +1,28 @@
+<package>
+  <name>gvg_meta</name>
+  <version>0.0.1</version>
+  <description>
+    Metapackage for GVG.
+  </description>
+  <maintainer email="yiannis@cim.mcgill.ca">Ioannis Rekleitis</maintainer>
+  <license>BSD</license>
+  <url>http://ros.org/wiki/GVG</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>laser_node</run_depend>
+  <run_depend>localizer</run_depend>
+  <run_depend>robot_node</run_depend>
+  <run_depend>gvg_planner</run_depend>
+  <run_depend>gvg_mapper</run_depend>
+  <run_depend>gvg</run_depend>
+  <run_depend>map_handler</run_depend>
+  <run_depend>remapper</run_depend>
+
+<export>
+   <metapackage/>
+ </export>
+
+</package>
+
+

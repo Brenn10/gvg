@@ -75,6 +75,7 @@ add_executable(robotSim     src/robotSim.cpp    src/main.cpp    src/PIDControlle
 
 target_link_libraries(robotSim ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
 
+add_dependencies(robotSim ${catkin_LIBRARIES} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 #target_link_libraries(test_translation ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
 #target_link_libraries(test_rotation ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
 #target_link_libraries(test_forward_turn ${catkin_LIBRARIES} ${BULLET_LIBRARIES})

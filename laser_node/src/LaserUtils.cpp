@@ -26,7 +26,8 @@ double LaserUtils::getRange(const sensor_msgs::LaserScan::ConstPtr& msg, int i) 
 double LaserUtils::getBearing(const sensor_msgs::LaserScan::ConstPtr& msg, int i) { 
   double theta = i*msg->angle_increment + msg->angle_min;
   assert(msg->angle_max > msg->angle_min);
-  assert(msg->angle_max > M_PI/2.0 && msg->angle_min < -M_PI/2.0);
+  //ROS_INFO("%f %f", msg->angle_max, msg->angle_min);
+  //assert(msg->angle_max > M_PI/3.0*2.0 && msg->angle_min < -M_PI/3.0*2.0);
   assert(i >= 0 && i <= countScans - 1);
   assert(theta >= msg->angle_min && theta <= msg->angle_max);
   return theta;

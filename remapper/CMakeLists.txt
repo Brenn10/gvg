@@ -24,3 +24,5 @@ add_executable(remapper src/remapper.cpp)
 target_link_libraries(remapper
   ${catkin_LIBRARIES}
 )
+
+add_dependencies(remapper ${catkin_LIBRARIES})

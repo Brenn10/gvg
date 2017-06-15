@@ -71,6 +71,6 @@ add_executable(laserUtilsServer src/main.cpp src/LaserUtils.cpp src/BasicGeometr
 add_executable(laser_utils_viz  src/viz.cpp)
 #rosbuild_add_executable(test_wall_following  src/tests/test_wall_following.cpp)
 target_link_libraries(laserUtilsServer ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
-add_dependencies(laserUtilsServer ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(laserUtilsServer ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(laser_utils_viz ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
-add_dependencies(laser_utils_viz ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(laser_utils_viz ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)

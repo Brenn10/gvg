@@ -16,7 +16,7 @@ public:
       laser_sub = nh.subscribe("/lidar/scan", 1, &ReMapper::laserCallBack, this);
       laser_pub = nh.advertise<sensor_msgs::LaserScan>("/lidar/reversed", 1);
     } 
-		pose_sub  = nh.subscribe("/robot_pose_ekf/odom", 1, &ReMapper::poseCallBack, this);
+		pose_sub  = nh.subscribe("/indoor/odom", 1, &ReMapper::poseCallBack, this);
 		odom_pub  = nh.advertise<nav_msgs::Odometry>("/indoor/pose_to_odom", 1);
 	}
 	

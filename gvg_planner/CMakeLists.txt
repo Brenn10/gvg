@@ -49,8 +49,8 @@ catkin_package(CATKIN_DEPENDS
   laser_node 
 ) 
 
-find_package(Eigen REQUIRED)
-add_definitions(${EIGEN_DEFINITIONS})
+#find_package(Eigen REQUIRED)
+#add_definitions(${EIGEN_DEFINITIONS})
 
 include_directories(
   ${BULLET_INCLUDE_DIRS}
@@ -71,4 +71,4 @@ include_directories(
 add_executable(gvg_planner src/main.cpp src/ekf_sim.cpp src/Planner.cpp)
 #add_executable(gvg_planner src/main.cpp src/Planner.cpp)
 target_link_libraries(gvg_planner ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
-add_dependencies(gvg_planner ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(gvg_planner  ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)

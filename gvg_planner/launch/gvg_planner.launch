@@ -4,5 +4,4 @@
     <param name="random_reloc_target" value="false" type="bool" />
     <param name="frontier_min_uncertainty_exploration" value="true" type="bool" />
   </node>
-   
 </launch>

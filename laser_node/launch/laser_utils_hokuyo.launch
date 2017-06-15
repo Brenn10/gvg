@@ -1,7 +1,11 @@
 <launch>
+	<node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" >
+        <param name="frame_id" value="base_link" />
+        <remap from="/scan" to="/indoor/base_scan" />
+    </node>
+    
 	<node ns="indoor/laser_utils" pkg="laser_node" type="laserUtilsServer" name="laser_utils_server" output="screen" launch-prefix=" " args=" ">
-	<remap from="/indoor/base_scan" to="/scan"/>
-	<param name="robot_diam" value="0.5" type="double"/>
-  <param name="laser_max_range" value="30" type="double"/>
+		<param name="robot_diam" value="0.5" type="double"/>
+	    <param name="laser_max_range" value="4" type="double"/>
 	</node>
 </launch>

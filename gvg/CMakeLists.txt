@@ -104,6 +104,6 @@ target_link_libraries(gvg_follower ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
 
 target_link_libraries(follow_edge_viz ${catkin_LIBRARIES} ${BULLET_LIBRARIES})
 
-add_dependencies(agent ${PROJECT_NAME}_generate_messages_cpp)
-add_dependencies(gvg_follower ${PROJECT_NAME}_generate_messages_cpp)
-add_dependencies(follow_edge_viz ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(agent ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(gvg_follower ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(follow_edge_viz ${catkin_LIBRARIES} ${PROJECT_NAME}_generate_messages_cpp)
