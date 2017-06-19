@@ -1,5 +1,6 @@
 <launch>
-	<node name="hokuyo" pkg="hokuyo_node" type="hokuyo_node" >
+	<node name="hokuyo" pkg="urg_node" type="urg_node" >
+	<param name="ip_address" value="192.168.1.20"/>
         <param name="frame_id" value="base_link" />
         <remap from="/scan" to="/indoor/base_scan" />
     </node>

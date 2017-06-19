@@ -669,7 +669,10 @@ bool GVGGraph::retrieveBearings(gvg_mapper::RetrieveBearings::Request& req, gvg_
         }
       }
       res.chosen_bearing = chosen_bearing;
-    } else res.chosen_bearing = NULL;
+    } else {
+      res.chosen_bearing = NULL;
+      ROS_WARN("Set the chosen bearing to NULL, will (most likely) lead to error");
+    }
 
     /* Update the chosen bearing as visited */
 

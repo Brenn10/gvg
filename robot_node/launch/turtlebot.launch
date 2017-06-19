@@ -10,6 +10,7 @@
     <param name="ang_vel_kp" value="2.0" type="double"/>
     <param name="ang_vel_ki" value="0.0" type="double"/>
     <param name="ang_vel_kd" value="0.0" type="double"/>
-    <remap from="/indoor/cmd_vel" to="/navigation_velocity_smoother_navi/raw_cmd_vel"/>
+    <!--<remap from="/indoor/cmd_vel" to="/navigation_velocity_smoother_navi/raw_cmd_vel"/>-->
+    <remap from="/indoor/cmd_vel" to="/mobile_base/commands/velocity"/>
   </node>
 </launch>
