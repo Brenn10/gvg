@@ -95,6 +95,7 @@ GVGGraph::GVGGraph() {
   nh.getParam("/gvg_mapper/vertex_matching_policy", this->vertex_matching_policy);
   nh.getParam("/gvg_mapper/closest_distance_threshold", this->closest_distance_threshold);
   nh.getParam("/gvg_mapper/edge_length_threshold", this->edge_length_threshold);
+  nh.getParam("/gvg_mapper/alwaysRelocalize", this->alwaysRelocalize);
 }
 
 /*
@@ -584,21 +585,38 @@ bool GVGGraph::checkRelocalize(gvg_mapper::CheckRelocalize::Request& req, gvg_ma
   if (vertex_matching_policy != 0 && num_vertices(G) > 0) {
     if (relocalize) {
       relocalize = false;
-      string str = "";
-      cout << "relocalize (random relocalize)?\n";
-      getline(cin, str);
-      if (str == "y") {
+      if(alwaysRelocalize)
+      {
         res.relocalize = 2;
         return true;
       }
+      else
+      {
+        string str = "";
+        cout << "relocalize (random relocalize)?\n";
+        getline(cin, str);
+        if (str == "y") {
+	  res.relocalize = 2;
+	  return true;
+        }
+      }
     }
-    if (last_edge_length >= 3.0 && last_edge_length <= max(ellipse.halfaxis1, ellipse.halfaxis2)) {
-      string str = "";
-      cout << "relocalize?\n";
-      getline(cin, str);
-      if (str == "y") {
+    if (last_edge_length >= 3.0 && last_edge_length <= max(ellipse.halfaxis1, ellipse.halfaxis2)) 
+    {
+      if(alwaysRelocalize)
+      {
         res.relocalize = 1;
         return true;
+      }
+      else
+      {
+        string str = "";
+        cout << "relocalize?\n";
+        getline(cin, str);
+        if (str == "y") {
+          res.relocalize = 1;
+          return true;
+        }
       }
     }
   }
@@ -655,9 +673,9 @@ bool GVGGraph::retrieveBearings(gvg_mapper::RetrieveBearings::Request& req, gvg_
           break;
         }
         case 2: {
-          cout << "Choose a direction for robot to explore next(enter the index): ";
+          cout << "Choose a direction for robot to explore next(enter the index): " <<endl;
           for(int i =0; i <bearings.size();i++)
-          ROS_INFO("%d:  %f",i,bearings.at(i));
+          cout << i << ":" << bearings.at(i))<<endl;
           string str = "";
           getline(cin, str);
           chosen_bearing = bearings.at((int)atof(str.c_str()));

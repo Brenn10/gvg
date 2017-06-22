@@ -7,8 +7,9 @@ Panels:
         - /Global Options1
         - /Status1
         - /LaserScan1
+        - /Odometry1
       Splitter Ratio: 0.5
-    Tree Height: 324
+    Tree Height: 238
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -102,7 +103,7 @@ Visualization Manager:
       Marker Topic: /gvg_mapper_viz/edges
       Name: Edges
       Namespaces:
-        gvg_mapper_edges: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -110,7 +111,7 @@ Visualization Manager:
       Marker Topic: /gvg_mapper_viz/edges_names
       Name: Edges Names
       Namespaces:
-        gvg_mapper_edges: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -128,6 +129,16 @@ Visualization Manager:
       Namespaces:
         gvg_mapper_nodes: true
       Queue Size: 100
+      Value: true
+    - Angle Tolerance: 0.1
+      Class: rviz/Odometry
+      Color: 255; 25; 0
+      Enabled: true
+      Keep: 100
+      Length: 0.3
+      Name: Odometry
+      Position Tolerance: 0.1
+      Topic: /indoor/gvg/odom_combined
       Value: true
   Enabled: true
   Global Options:
@@ -148,7 +159,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 8.91298
+      Distance: 9.72489
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -160,10 +171,10 @@ Visualization Manager:
         Z: 0
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.2148
+      Pitch: 1.5698
       Target Frame: base_link
       Value: ThirdPersonFollower (rviz)
-      Yaw: 3.1704
+      Yaw: 3.1654
     Saved: ~
 Window Geometry:
   Displays:
@@ -171,7 +182,7 @@ Window Geometry:
   Height: 744
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd00000001000000000000016a000002a2fc0200000002fb000000100044006900730070006c0061007900730100000028000001d3000000dd00fffffffb0000000a005600690065007700730100000201000000c9000000b000ffffff000003a5000002a200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001de000002a2fc0200000002fb000000100044006900730070006c00610079007301000000280000017d000000dd00fffffffb0000000a0056006900650077007301000001ab0000011f000000b000ffffff00000331000002a200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1301

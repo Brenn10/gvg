@@ -84,7 +84,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   obs_mutex.lock();
   if (obstacles.collection.empty()) {
     ROS_WARN("There are no obstacles!");
-    res.success = false;
+    res.success = -1;
     obs_mutex.unlock();
     return true;
   }
@@ -102,7 +102,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   srv.request.ang_speed = req.ang_vel;
   if (!rel_rotate_cln.call(srv)) {
     ROS_WARN("Could not turn the robot!");
-    res.success = false;
+    res.success = -2;
     return true;
   }
 
@@ -115,13 +115,13 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   obs_mutex.lock();
   if (obstacles.collection.empty()) {
     ROS_WARN("There are no obstacles!");
-    res.success = false;
+    res.success = -3;
     obs_mutex.unlock();
     return true;
   }
   
   i = 0;
-  while (obstacles.collection.at(i).min_bearing < 0.0) i++;
+  while (i<obstacles.collection.size()-1 && obstacles.collection.at(i).min_bearing < 0.0 ) i++;
   laser_node::Obstacle backward_closest = obstacles.collection.at(i);
   laser_node::Obstacle closest = forward_closest;
   if (forward_closest.min_distance > backward_closest.min_distance) {
@@ -144,7 +144,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   srv2.request.ang_speed = req.ang_vel;
   if (!rel_rotate_cln.call(srv2)) {
     ROS_WARN("Could not turn the robot!");
-    res.success = false;
+    res.success = -4;
     return true;
   }
 
@@ -156,7 +156,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   obs_mutex.lock();
   if (obstacles.collection.empty()) {
     ROS_WARN("There are no obstacles!");
-    res.success = false;
+    res.success = -5;
     obs_mutex.unlock();
     return true;
   }
@@ -181,7 +181,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
 
   if (oppositeRange == std::numeric_limits<int>::max()) {
     ROS_WARN("There is no obstacle opposite to the closest obstacle!");
-    res.success = false;
+    res.success = -6;
     return true;
   }
   
@@ -195,7 +195,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   srv3.request.ang_speed = req.ang_vel;
   if (!rel_rotate_cln.call(srv3)) {
     ROS_WARN("Could not turn the robot!");
-    res.success = false;
+    res.success = -7;
     return true;
   }
      
@@ -207,7 +207,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   srv4.request.lin_speed = req.lin_vel;
   if (!rel_translate_cln.call(srv4)) {
     ROS_WARN("Could not translate the robot!");
-    res.success = false;
+    res.success = -8;
     return true;
   }
  
@@ -217,10 +217,10 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   srv5.request.ang_speed = req.ang_vel;
   if (!rel_rotate_cln.call(srv5)) {
     ROS_WARN("Could not turn the robot!");
-    res.success = false;
+    res.success = -9;
     return true;
   }
-  res.success = true;
+  res.success = 0;
   return true;
 }
 

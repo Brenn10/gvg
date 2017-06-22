@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
   if (!access_gvg_srv.call(asrv)) {
     ROS_WARN("Access GVG failed");
     ros::shutdown();
-    return 0;
+    return -1;
   }
   
   ros::spinOnce();

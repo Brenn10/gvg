@@ -4,6 +4,7 @@
   <param name="Wvv" value="0.075" type="double" />
   <param name="Wvw" value="0.00" type="double" />
   <param name="Www" value="0.0075" type="double" />
+  <param name="filterOn" value="true" type="bool"/>
 </node>
 
 </launch>

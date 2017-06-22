@@ -1,5 +1,7 @@
 #include <iostream>
 #include <limits>
+#include <cmath>
+#include <cfloat>
 #include "localizerGVG.h"
 #include <tf/transform_listener.h>
 #include <fstream>
@@ -25,8 +27,8 @@ localizerGVG::localizerGVG(std::string& robot_name):
   nh.param("theMap_frame", theMap_frame, std::string("theMap"));
 
   mapPub = nh.advertise<localizer::GVGmap>(theMap_frame, 10);
-  
-  filterOn=true;
+
+  nh.param("filterOn",this->filterOn);
   initOdom=false;
   mapLoadLocalization = true;
   bearing_angle = 0;
@@ -65,6 +67,11 @@ void localizerGVG::handleOdom(const nav_msgs::Odometry::ConstPtr& odom) {
   tf::Pose pose;
   tf::poseMsgToTF(odom->pose.pose, pose);
   double yaw=tf::getYaw(pose.getRotation());
+  ROS_DEBUG("IN [x=%f, y=%f, yaw=%f]",x,y,yaw);
+  if(std::isnan(yaw) || std::isnan(x) || std::isnan(y)){
+    ROS_WARN("Odom read nan, skipping iteration of publishing and hoping for recovery.");
+    return;
+  }
   if(!initOdom) {
     oldX=x;
     oldY=y;
@@ -75,7 +82,7 @@ void localizerGVG::handleOdom(const nav_msgs::Odometry::ConstPtr& odom) {
     X.segment(0, 3) = odomVector;
     return;
   }
-  if(filterOn) {
+  if(this->filterOn) {
     if((oldX==x)&&(oldY==y)&&(oldYaw==yaw)){
       oldStamp=odom->header.stamp;
       return;
@@ -85,6 +92,10 @@ void localizerGVG::handleOdom(const nav_msgs::Odometry::ConstPtr& odom) {
     double dy=y-oldY;
     double dYaw=angleDiff(yaw,oldYaw);
     double dt=odom->header.stamp.toSec()-oldStamp.toSec();
+    if(dt==0) {
+      ROS_DEBUG("dt in localizer equal to zero, will lead to nan. skipping and hoping for recovery");
+      return;
+    }
     double Vm=sqrt(dx*dx+dy*dy)/dt;
     double Wm=dYaw/dt;
     X(0)=X(0)+Vm*dt*cos(X(2));
@@ -100,6 +111,12 @@ void localizerGVG::handleOdom(const nav_msgs::Odometry::ConstPtr& odom) {
     outputPose.pose.pose.position.y = X(1);
     outputPose.pose.pose.position.z = 0;
     outputPose.pose.pose.orientation=odom_quat;
+
+    if(std::isnan(X(0)),std::isnan(X(1)))
+    {
+      ROS_WARN("Filter made something nan, skipping publishing and hoping for recovery.");
+      return;
+    }
     for (unsigned int i=0; i<2; i++)
       for (unsigned int j=0; j<2; j++)
     	outputPose.pose.covariance[6*i+j] = P(i,j);
