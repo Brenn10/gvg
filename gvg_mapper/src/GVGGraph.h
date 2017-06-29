@@ -182,7 +182,8 @@ class GVGGraph {
   double edge_length_threshold;
   int exploration_policy;
   int vertex_matching_policy;
-  bool alwaysRelocalize;
+  int alwaysRelocalize;
+  bool relocalizedLast;
 
   GVGEdge currentEdge;
   Vertex lastVertex;

@@ -14,6 +14,12 @@
     <param name="exploration_policy" value="2" />    <!-- random walk = 0, ear-based = 1, user chosen = 2 -->
     <param name="vertex_matching_policy" value="1" />       <!-- strictly odometry based = 0, user confirmation = 1, vertex matching = 2 -->
     <param name="edge_length_threshold" value="1.5" type="double" />   <!-- cut-off threshold when comparing edge lengths (bearing matching) -->
-    <param name="alwaysRelocalize" value="True" type="bool" />   <!-- Removes the relocalize prompt and always relocalizes -->
+    <param name="alwaysRelocalize" value="0" type="int" />   <!-- ask everytime=0, always relocalize=1, half the time relocalize=2 -->
+  </node>
+
+
+  <node name="map_saver" pkg="gvg_mapper" type="MapSaver.py" output="screen">
+    <param name="map_save_dir" value="map_log/" />
+    <param name="map_save_update_rate" value="120" />
   </node>
 </launch>

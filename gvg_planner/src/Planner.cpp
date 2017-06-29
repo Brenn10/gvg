@@ -587,6 +587,13 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
           ROS_INFO("Running heuristic search from %d to %d", req.node_id, j);
           double uncertainty = 0.0;
           vector<int> temp_path = reloc_sim.find_optimal(req.node_id, j, start_shortest_distance, alpha, uncertainty);
+          if (temp_path.empty())
+          {
+            ROS_ERROR("temp_path empty, could not find correct path, skipping relocalization");
+            res.success=false;
+            return false;
+          } 
+
           if (uncertainty < min_uncertainty) {
             vertex_list.assign(temp_path.begin(), temp_path.end());
             min_uncertainty = uncertainty;

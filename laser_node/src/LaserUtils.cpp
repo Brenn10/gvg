@@ -118,7 +118,7 @@ void LaserUtils::handleLaserScan(const sensor_msgs::LaserScan::ConstPtr& msg) {
   laser_node::Obstacles obs_msg;
   
   bool found_good_obstacle_set = false;
-  double epsilon = 0.5;  //in meters
+  double epsilon = 0.7;  //in meters
   double minRange = 0;
 
   while (minRange + epsilon < scan.range_max && !found_good_obstacle_set) {

@@ -43,7 +43,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.01
       Style: Flat Squares
-      Topic: /scan
+      Topic: /indoor/base_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: false
@@ -103,7 +103,7 @@ Visualization Manager:
       Marker Topic: /gvg_mapper_viz/edges
       Name: Edges
       Namespaces:
-        {}
+        gvg_mapper_edges: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -111,7 +111,7 @@ Visualization Manager:
       Marker Topic: /gvg_mapper_viz/edges_names
       Name: Edges Names
       Namespaces:
-        {}
+        gvg_mapper_edges: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -159,7 +159,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 9.72489
+      Distance: 8.24593
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1

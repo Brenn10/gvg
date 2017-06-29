@@ -10,7 +10,7 @@
 #include <sensor_msgs/LaserScan.h>
 
 /* Minimum distance that is considered a scan discontinuity between laser scans. */
-#define MIN_RANGE_JUMP 0.5
+#define MIN_RANGE_JUMP 0.7
 
 class LaserUtils {
 

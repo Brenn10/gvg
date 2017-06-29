@@ -96,6 +96,7 @@ GVGGraph::GVGGraph() {
   nh.getParam("/gvg_mapper/closest_distance_threshold", this->closest_distance_threshold);
   nh.getParam("/gvg_mapper/edge_length_threshold", this->edge_length_threshold);
   nh.getParam("/gvg_mapper/alwaysRelocalize", this->alwaysRelocalize);
+  this->relocalizedLast=false;
 }
 
 /*
@@ -585,15 +586,26 @@ bool GVGGraph::checkRelocalize(gvg_mapper::CheckRelocalize::Request& req, gvg_ma
   if (vertex_matching_policy != 0 && num_vertices(G) > 0) {
     if (relocalize) {
       relocalize = false;
-      if(alwaysRelocalize)
+      if(alwaysRelocalize==1)
       {
         res.relocalize = 2;
         return true;
       }
+      else if(alwaysRelocalize==2)
+      {
+        if(!relocalizedLast)
+        {
+          res.relocalize = 2;
+          relocalizedLast=true;
+          return true;
+        } else {
+          relocalizedLast=false;
+        }
+      }
       else
       {
         string str = "";
-        cout << "relocalize (random relocalize)?\n";
+        cout << "relocalize (random relocalize)[y/n]?\n";
         getline(cin, str);
         if (str == "y") {
 	  res.relocalize = 2;
@@ -603,15 +615,26 @@ bool GVGGraph::checkRelocalize(gvg_mapper::CheckRelocalize::Request& req, gvg_ma
     }
     if (last_edge_length >= 3.0 && last_edge_length <= max(ellipse.halfaxis1, ellipse.halfaxis2)) 
     {
-      if(alwaysRelocalize)
+      if(alwaysRelocalize==1)
       {
         res.relocalize = 1;
         return true;
       }
+      else if(alwaysRelocalize==2)
+      {
+        if(!relocalizedLast)
+        {
+          res.relocalize = 1;
+          relocalizedLast=true;
+          return true;
+        } else {
+          relocalizedLast=false;
+        }
+      }
       else
       {
         string str = "";
-        cout << "relocalize?\n";
+        cout << "relocalize[y/n]?\n";
         getline(cin, str);
         if (str == "y") {
           res.relocalize = 1;
