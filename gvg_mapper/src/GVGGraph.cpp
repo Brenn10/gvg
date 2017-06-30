@@ -942,7 +942,7 @@ bool GVGGraph::loadSavedMap(gvg_mapper::LoadSavedMap::Request& req, gvg_mapper::
     
   next_node_id = max_node_id + 1;
   next_edge_id = max_edge_id + 1;
-  
+  res.success=true;
   return true;
 }
 

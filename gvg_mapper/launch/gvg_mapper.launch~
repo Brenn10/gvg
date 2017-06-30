@@ -19,7 +19,7 @@
 
 
   <node name="map_saver" pkg="gvg_mapper" type="MapSaver.py" output="screen">
-    <param name="map_save_dir" value="~/map_log/" />
+    <param name="map_save_dir" value="map_log/" />
     <param name="map_save_update_rate" value="120" />
   </node>
 </launch>

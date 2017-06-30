@@ -1,3 +1,4 @@
 gvg_mapper/GVGNode[] nodes
 gvg_mapper/GVGEdgeMsg[] edges
 ---
+bool success

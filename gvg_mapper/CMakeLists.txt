@@ -9,6 +9,7 @@ include_directories(${BULLET_INCLUDE_DIRS})
 find_package(catkin REQUIRED COMPONENTS 
   message_generation 
   roscpp 
+  rospy
   std_msgs  
   geometry_msgs 
   sensor_msgs 
@@ -57,7 +58,8 @@ generate_messages(DEPENDENCIES
 
 catkin_package(CATKIN_DEPENDS 
   message_runtime 
-  roscpp 
+  roscpp
+  rospy
   std_msgs
   geometry_msgs 
   sensor_msgs 
