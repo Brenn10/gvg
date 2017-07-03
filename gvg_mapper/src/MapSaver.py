@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os
 import rospy
+import pickle
 from gvg_mapper.msg import GVGNode,GVGEdgeMsg
 
 '''
@@ -23,11 +24,11 @@ class MapSaver():
 	# @param save_dir directory to place map files
 	# 
 	# @return boolean success flag
-	def create_dir(self,save_dir):
+	def create_dir(self):
 		try:#if can create and access, good
-			if not os.path.exists(save_dir):
-				os.makedirs(save_dir)
-			if os.access(save_dir, os.W_OK):
+			if not os.path.exists(self.save_dir):
+				os.makedirs(self.save_dir)
+			if os.access(self.save_dir, os.W_OK):
 				return True
 			else:
 				rospy.logerr("Could not open directory for map saving. ERR: 1")
@@ -38,18 +39,14 @@ class MapSaver():
 		
 	## Dumps the nodes and edges to file
 	#
-	# @param save_dir directory to save to
 	# @param name name of file
-	def dump(self,save_dir,name):
+	def dump(self,name):
 		#safely concatenate paths
-		completePath=os.path.join(save_dir,name+".map")
+		completePath=os.path.join(self.save_dir,name+".map")
 
 		#dump information to file and close
 		with open(completePath,"w") as f:
-			for edge in self.edges.values():
-				pickle.dump(edge, f, pickle.HIGHEST_PROTOCOL)
-			for node in self.nodes.values():
-				pickle.dump(node, f, pickle.HIGHEST_PROTOCOL)
+			pickle.dump((self.nodes.values(),self.edges.values()), f, pickle.HIGHEST_PROTOCOL)
 		rospy.loginfo("Saved a map update")
 
 	## What to do on death
@@ -80,10 +77,10 @@ class MapSaver():
 		rospy.on_shutdown(self.die)
 
 		#get parameters from server
-		save_dir = rospy.get_param("map_save_dir","map_log/") #default to .ros/map_log
+		self.save_dir = rospy.get_param("map_save_dir","map_log/") #default to .ros/map_log
 		update_rate = rospy.get_param("map_save_update_rate",120) #update once every 2 min
 		#create directory and set clean_open
-		self.clean_open=self.create_dir(save_dir)
+		self.clean_open=self.create_dir()
 
 		#create dictionaries
 		self.edges={} #dictionary of edge_id:edge_obj
@@ -99,7 +96,7 @@ class MapSaver():
 		self.alive=True
 		while(self.clean_open and self.alive):
 			if(self.updated):
-				dump(str(rospy.get_time()))
+				self.dump(str(rospy.get_time()))
 				self.updated=False
 			rospy.sleep(update_rate)
 MapSaver()

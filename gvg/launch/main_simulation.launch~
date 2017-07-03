@@ -12,8 +12,8 @@
    <include file="$(find localizer)/launch/localizer_simulation.launch" />
    
    <node ns="indoor/gvg/" name="map_handler" pkg="map_handler" type="map_handler" output="screen" args=" ">
-       <param name="map_save_filename" value="/home/thalassa/qzhang32/catkin_ws/src/indoor_pkgs/map_handler/maps/CIM" type="str" />
-       <param name="map_load_filename" value="/home/thalassa/qzhang32/catkin_ws/src/indoor_pkgs/map_handler/maps/31-fullgrid" type="str" />
+       <param name="map_save_filename" value="/home/kusanagi/GVG_maps/swearingen" type="str" />
+       <param name="map_load_filename" value="/home/kusanagi/GVG_maps/swearingen" type="str" />
        <param name="load" value="false" type="bool" />
    </node>
 
@@ -28,7 +28,7 @@
    <node ns="indoor/gvg/" name="agent" pkg="gvg" type="agent"  output="screen" args=" ">
       <param name="meetpoint_threshold" value="0.2" type="double" />
       <param name="do_move"  		value="true"  		type="bool" />
-      <param name="lin_vel" value="0.2" type="double" />
+      <param name="lin_vel" value="0.15" type="double" />
       <param name="ang_vel" value="0.3" type="double" />
    </node>
 </launch>

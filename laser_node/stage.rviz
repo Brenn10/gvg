@@ -9,7 +9,7 @@ Panels:
         - /LaserScan1
         - /Odometry1
       Splitter Ratio: 0.5
-    Tree Height: 238
+    Tree Height: 222
   - Class: rviz/Views
     Expanded:
       - /Current View1
@@ -103,7 +103,7 @@ Visualization Manager:
       Marker Topic: /gvg_mapper_viz/edges
       Name: Edges
       Namespaces:
-        gvg_mapper_edges: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -111,7 +111,7 @@ Visualization Manager:
       Marker Topic: /gvg_mapper_viz/edges_names
       Name: Edges Names
       Namespaces:
-        gvg_mapper_edges: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -119,7 +119,7 @@ Visualization Manager:
       Marker Topic: /gvg_mapper_viz/meetpoints
       Name: Nodes
       Namespaces:
-        gvg_mapper_nodes: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -127,7 +127,7 @@ Visualization Manager:
       Marker Topic: /gvg_mapper_viz/meetpoints_names
       Name: Nodes Names
       Namespaces:
-        gvg_mapper_nodes: true
+        {}
       Queue Size: 100
       Value: true
     - Angle Tolerance: 0.1
@@ -178,13 +178,13 @@ Visualization Manager:
     Saved: ~
 Window Geometry:
   Displays:
-    collapsed: false
-  Height: 744
-  Hide Left Dock: false
+    collapsed: true
+  Height: 716
+  Hide Left Dock: true
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000001de000002a2fc0200000002fb000000100044006900730070006c00610079007301000000280000017d000000dd00fffffffb0000000a0056006900650077007301000001ab0000011f000000b000ffffff00000331000002a200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001de00000286fc0200000002fb000000100044006900730070006c00610079007300000000280000016d000000dd00fffffffb0000000a00560069006500770073000000019b00000113000000b000ffffff0000028a0000028600000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
-    collapsed: false
-  Width: 1301
-  X: 65
-  Y: 336
+    collapsed: true
+  Width: 650
+  X: 2625
+  Y: 669
