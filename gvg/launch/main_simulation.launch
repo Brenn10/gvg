@@ -1,6 +1,5 @@
 <launch>	
-   
-   <include file="$(find robot_node)/launch/simulator.launch" />
+   <include file="$(find robot_node)/launch/simulator.launch"/>
    <include file="$(find laser_node)/launch/laser_utils_stage.launch" />
    <include file="$(find gvg_planner)/launch/gvg_planner.launch" />
    <include file="$(find gvg_mapper)/launch/gvg_mapper.launch">

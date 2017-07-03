@@ -1,6 +1,4 @@
-<launch>	
-   <machine name="desktop" address="129.252.131.285" env-loader="/opt/ros/indigo/env.sh"/>
-   <include file="$(find robot_node)/launch/simulator.launch" machine="desktop"/>
+<launch>
    <include file="$(find laser_node)/launch/laser_utils_stage.launch" />
    <include file="$(find gvg_planner)/launch/gvg_planner.launch" />
    <include file="$(find gvg_mapper)/launch/gvg_mapper.launch">
