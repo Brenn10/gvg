@@ -19,10 +19,10 @@ int main(int argc, char **argv) {
   follow_edge_cln  = new actionlib::SimpleActionClient<gvg::FollowEdgeAction>("/indoor/gvg/follow_edge", true);
   double lin_vel = 1.0;   // 1m/s
   double ang_vel = 40/180.0 * M_PI;  // 40 deg/s
-  
-  bool do_move = true;  
+
+  bool do_move = true;
   nh.getParam("lin_vel", lin_vel);
-  nh.getParam("ang_vel", ang_vel);  
+  nh.getParam("ang_vel", ang_vel);
 
   gvg::Access asrv;
   asrv.request.lin_vel = lin_vel;
@@ -33,32 +33,32 @@ int main(int argc, char **argv) {
     ros::shutdown();
     return -1;
   }
-  
+
   ros::spinOnce();
 
   ros::Rate rate(20);
   while (ros::ok()) {
     ros::spinOnce();
-  
+
     nh.getParam("do_move", do_move);
-    
+
     gvg::FollowEdgeGoal goal;
     goal.lin_vel = lin_vel;         // 1m/s, ang_vel is going to be regulated by the PID controller
     goal.do_move = do_move;   // false if we want to move the robot manually
-    
+
     follow_edge_cln->sendGoal(goal);
-    bool before_timeout = follow_edge_cln->waitForResult(ros::Duration(30*60));    
+    bool before_timeout = follow_edge_cln->waitForResult(ros::Duration(30*60));
     // wait for max 30mins until the next meetpoint or endpoint
 
     if (!before_timeout) {
       ROS_INFO("Follow edge took too long to terminate!");
       ros::shutdown();
       return 0;
-    } 
+    }
 
     actionlib::SimpleClientGoalState state = follow_edge_cln->getState();
     gvg::FollowEdgeResult::ConstPtr result = follow_edge_cln->getResult();
-    
+
     switch (result->stoppedBecause) {
 
     case gvg::FollowEdgeResult::FOUND_MEETPOINT: {
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
       assert(result->node.degree == 1);
       assert(result->node.possible_bearings.size() == 1);
       assert(result->node.edge_angle_diffs.size() == 1);
-	 
+
       gvg::SelectEdge sesrv2;
       sesrv2.request.lin_vel = lin_vel;     // 1 m/s
       sesrv2.request.ang_vel = ang_vel;    // 40 deg/s
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
      ROS_INFO("Found no obstacles");
      ros::shutdown();
      return 0;
-	
+
    case gvg::FollowEdgeResult::PREEMPTED:
      ROS_INFO("Follow edge cancelled or replaced");
      break;
@@ -113,7 +113,7 @@ int main(int argc, char **argv) {
      ros::shutdown();
      return 0;
    }
-    
+
    rate.sleep();
   }
   return 0;

@@ -1,6 +1,5 @@
 <launch>	
-   <machine name="desktop" address="129.252.131.285" env-loader="/opt/ros/indigo/env.sh"/>
-   <include file="$(find robot_node)/launch/simulator.launch" machine="desktop"/>
+   <include file="$(find robot_node)/launch/simulator.launch"/>
    <include file="$(find laser_node)/launch/laser_utils_stage.launch" />
    <include file="$(find gvg_planner)/launch/gvg_planner.launch" />
    <include file="$(find gvg_mapper)/launch/gvg_mapper.launch">
@@ -28,7 +27,7 @@
    <node ns="indoor/gvg/" name="agent" pkg="gvg" type="agent"  output="screen" args=" ">
       <param name="meetpoint_threshold" value="0.2" type="double" />
       <param name="do_move"  		value="true"  		type="bool" />
-      <param name="lin_vel" value="0.15" type="double" />
+      <param name="lin_vel" value="0.25" type="double" />
       <param name="ang_vel" value="0.3" type="double" />
    </node>
 </launch>

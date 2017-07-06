@@ -15,7 +15,7 @@ using namespace std;
 
 GVGFollower::GVGFollower():
     follow_edge_srv(nh, "follow_edge", boost::bind(&GVGFollower::handle_follow_edge_goal, this, _1), false) {
- 
+
   access_gvg_srv    = nh.advertiseService("access", &GVGFollower::AccessGVG, this);
   select_edge_srv   = nh.advertiseService("select_edge", &GVGFollower::SelectEdge, this);
 
@@ -25,7 +25,7 @@ GVGFollower::GVGFollower():
   /* Mapper clients */
   add_meetpoint_cln = nh.serviceClient<gvg_mapper::AddMeetpoint>("/add_meetpoint");
   add_endpoint_cln  = nh.serviceClient<gvg_mapper::AddEndpoint>("/add_endpoint");
-  extend_edge_cln   = nh.serviceClient<gvg_mapper::ExtendEdge>("/extend_edge"); 
+  extend_edge_cln   = nh.serviceClient<gvg_mapper::ExtendEdge>("/extend_edge");
 
   brake_cln         = nh.serviceClient<robot_node::Brake>("/indoor/brake");
   rel_rotate_cln    = nh.serviceClient<robot_node::RelRotate>("/indoor/relative_rotate");
@@ -41,7 +41,7 @@ GVGFollower::GVGFollower():
   nh.getParam("/indoor/gvg/agent/meetpoint_threshold", this->MEETPOINT_THRESHOLD);
   nh.getParam("/gvg_mapper/leave_meetpoint_min_dist", this->LEAVE_MEETPOINT_MIN_DIST);
   nh.getParam("/gvg_mapper/leave_meetpoint_max_dist", this->LEAVE_MEETPOINT_MAX_DIST);
-  
+
   detect_meetpoint_bypass = false;
   obstacles_read = false;
   follow_edge_srv.start();
@@ -61,7 +61,7 @@ void GVGFollower::handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
   obstacles = *msg;
   obstacles_read = true;
   obs_mutex.unlock();
-  
+
 }
 
 void GVGFollower::handle_odometry(const nav_msgs::Odometry::ConstPtr& msg) {
@@ -69,18 +69,18 @@ void GVGFollower::handle_odometry(const nav_msgs::Odometry::ConstPtr& msg) {
 }
 
 /*
- * Moves the robot and orients it so that it is on the GVG, based on the closest obstacle 
- * and the one that is opposite to it. 
+ * Moves the robot and orients it so that it is on the GVG, based on the closest obstacle
+ * and the one that is opposite to it.
  */
 bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& res) {
-  
+
   ros::Rate r(10);
   while (!obstacles_read) {
     ros::spinOnce();
     r.sleep();
   }
-  
-  // Step 1: find the closest obstacle in your current FOV 
+
+  // Step 1: find the closest obstacle in your current FOV
   obs_mutex.lock();
   if (obstacles.collection.empty()) {
     ROS_WARN("There are no obstacles!");
@@ -88,14 +88,14 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     obs_mutex.unlock();
     return true;
   }
-  
+
   int i = 0;
   while (obstacles.collection.at(i).min_bearing < 0.0) i++;
   laser_node::Obstacle forward_closest = obstacles.collection.at(i);
-  unsigned int old_seq = obstacles.seq; 
+  unsigned int old_seq = obstacles.seq;
   obs_mutex.unlock();
 
-  // Step 2: Turn 180 to see if there is an obstacle that is 
+  // Step 2: Turn 180 to see if there is an obstacle that is
   // closer to the one you found previously
   robot_node::RelRotate srv;
   srv.request.dtheta_rad = M_PI;
@@ -111,7 +111,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     ros::spinOnce();
   }
   old_seq = obstacles.seq;
-  
+
   obs_mutex.lock();
   if (obstacles.collection.empty()) {
     ROS_WARN("There are no obstacles!");
@@ -119,7 +119,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     obs_mutex.unlock();
     return true;
   }
-  
+
   i = 0;
   while (i<obstacles.collection.size()-1 && obstacles.collection.at(i).min_bearing < 0.0 ) i++;
   laser_node::Obstacle backward_closest = obstacles.collection.at(i);
@@ -137,8 +137,8 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   if (backward_closest.min_distance > forward_closest.min_distance) {
     srv2.request.dtheta_rad = forward_closest.min_bearing;
   } else {
-    srv2.request.dtheta_rad = backward_closest.min_bearing <= 0 ? 
-                              std::floor(M_PI + backward_closest.min_bearing) : 
+    srv2.request.dtheta_rad = backward_closest.min_bearing <= 0 ?
+                              std::floor(M_PI + backward_closest.min_bearing) :
                               std::floor(-M_PI + backward_closest.min_bearing);
   }
   srv2.request.ang_speed = req.ang_vel;
@@ -152,7 +152,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   while (obstacles.seq == old_seq) {
     ros::spinOnce();
   }
-    
+
   obs_mutex.lock();
   if (obstacles.collection.empty()) {
     ROS_WARN("There are no obstacles!");
@@ -160,8 +160,8 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     obs_mutex.unlock();
     return true;
   }
-  
-  // find the closest obstacle opposite to the closest point you found in 2. 
+
+  // find the closest obstacle opposite to the closest point you found in 2.
   double oppositeRange = std::numeric_limits<int>::max();
   geometry_msgs::Point32 closest_opposite_point;
   for (int i = 0; i < (int) obstacles.collection.size(); i++) {
@@ -184,7 +184,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     res.success = -6;
     return true;
   }
-  
+
   // Step 4: Turn towards the middle of the closest point and the opposite obstacle point
   geometry_msgs::Point32 middle;
   middle.x = (closest_opposite_point.x - closest.min_distance)/2.0;
@@ -198,10 +198,10 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     res.success = -7;
     return true;
   }
-     
+
   // Step 5: move towards the middle of the closest obstacle that you found in
-  // step 2 and its opposite obstacle, found in step 3. 
-  
+  // step 2 and its opposite obstacle, found in step 3.
+
   robot_node::RelTranslate srv4;
   srv4.request.dx_in_m   = norm(middle);
   srv4.request.lin_speed = req.lin_vel;
@@ -210,8 +210,8 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     res.success = -8;
     return true;
   }
- 
-  // Step 6: turn 90 so that you are aligned with the tangent to the closest point 
+
+  // Step 6: turn 90 so that you are aligned with the tangent to the closest point
   robot_node::RelRotate srv5;
   srv5.request.dtheta_rad = -M_PI/2.0;
   srv5.request.ang_speed = req.ang_vel;
@@ -226,26 +226,26 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
 
 /*
  * Computes the errors of the robot's current pose from the GVG pose. One error is the angular
- * error which means that the robot's x-axis is not aligned with the equidistant line to the two 
- * closest points. The other error is the distance of the robot's location to the equidistant line.  
+ * error which means that the robot's x-axis is not aligned with the equidistant line to the two
+ * closest points. The other error is the distance of the robot's location to the equidistant line.
  */
-void GVGFollower::DivergenceFromGVG(geometry_msgs::Point32& left, geometry_msgs::Point32& right, 
+void GVGFollower::DivergenceFromGVG(geometry_msgs::Point32& left, geometry_msgs::Point32& right,
 				    double& dy, double& dtheta_rad) {
 
   double closestObstaclesAngle = getAngleOfVector(left, right);
   dtheta_rad = M_PI/2.0 + closestObstaclesAngle;
 
-  geometry_msgs::Point32 midp; 
+  geometry_msgs::Point32 midp;
   getMidpoint(left, right, midp);
-  
-  geometry_msgs::Point32 origin; 
+
+  geometry_msgs::Point32 origin;
   origin.x = 0;
   origin.y = 0;
-  
+
   geometry_msgs::Point32 normal;
   normal.x = cos(closestObstaclesAngle + M_PI/2.0);
   normal.y = sin(closestObstaclesAngle + M_PI/2.0);
-  
+
   assert(std::abs(innerProduct(left, right, origin, normal)) < 0.00001);
 
   if (norm(right) < norm(left)) {
@@ -260,25 +260,25 @@ void GVGFollower::DivergenceFromGVG(geometry_msgs::Point32& left, geometry_msgs:
 
 /*
  * Sends an instantaneous motion command to the robot so that it follows the
- * current GVG edge based on the given obstacle readings. 
+ * current GVG edge based on the given obstacle readings.
  */
 void GVGFollower::InstantaneousFollowEdge(laser_node::Obstacles& msg, bool do_move, double lin_vel) {
   assert(msg.collection.size() >= 2);
-  
+
   //Slow down
   std::vector<double>   possibleBearings;
   laser_node::Obstacles  meetpoint_obstacles;
-  bool closeToMeetpoint = DetectMeetPoint(msg, possibleBearings, 3*MEETPOINT_THRESHOLD, 
+  bool closeToMeetpoint = DetectMeetPoint(msg, possibleBearings, 3*MEETPOINT_THRESHOLD,
 					  MEETPOINT_BEARING_ANGLE_DIFF, meetpoint_obstacles);
-  
+
   bool lastMeetpointWasALongTimeAgo = (ros::Time::now() - timeOfLastMeetpoint).toSec() > MEETPOINT_PERIOD;
- 
+
   laser_node::Obstacle left, right;
   ChooseBestMinPair(msg, left, right);
-  
+
   double dy, dtheta_rad;
   DivergenceFromGVG(left.closest_point, right.closest_point, dy, dtheta_rad);
-  
+
   if (do_move) {
     robot_node::Follow_Wall fw;
     fw.dy_in_m = dy;
@@ -294,16 +294,16 @@ void GVGFollower::InstantaneousFollowEdge(laser_node::Obstacles& msg, bool do_mo
   follow_edge_fbk.dy = dy;
   follow_edge_fbk.dtheta_in_rad = dtheta_rad;
   follow_edge_srv.publishFeedback(follow_edge_fbk);
-  
-  geometry_msgs::Point p; 
-  p.x = odom.pose.pose.position.x; 
+
+  geometry_msgs::Point p;
+  p.x = odom.pose.pose.position.x;
   p.y = odom.pose.pose.position.y;
   // We are using Z coordinate to pass the orientation of robot! Not the height of robot
   p.z = robot_angle;
   gvg_mapper::ExtendEdge extend_edge_srv;
   extend_edge_srv.request.p_stamped.header = odom.header;
   extend_edge_srv.request.p_stamped.point = p;
-  
+
   if(!extend_edge_cln.call(extend_edge_srv)) {
     ROS_WARN("Could not call extend edge to Mapper!");
     return;
@@ -316,7 +316,7 @@ void GVGFollower::InstantaneousFollowEdge(laser_node::Obstacles& msg, bool do_mo
  * We take another scan to confirm the location of the new meetpoint. If it is the same as the old meetpoint and we are within the threshold, we are on the meetpoint.
  */
 void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
-  
+
   robot_node::Brake srv;
   srv.request.brake = true;
   if (!brake_cln.call(srv)) {
@@ -334,10 +334,10 @@ void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
   // clear global variable
   meetpoint.x = 0.0;
   meetpoint.y = 0.0;
-  
+
   // Retrieve odometry position
-  geometry_msgs::Point32 p; 
-  p.x = odom.pose.pose.position.x; 
+  geometry_msgs::Point32 p;
+  p.x = odom.pose.pose.position.x;
   p.y = odom.pose.pose.position.y;
 
   tf::Pose pose;
@@ -404,7 +404,7 @@ void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
     while (robot_angle > M_PI) robot_angle -= 2*M_PI;
     while (robot_angle < -M_PI) robot_angle += 2*M_PI;
 
-    obs_mutex.unlock(); 
+    obs_mutex.unlock();
     ros::Rate rate(15);
     rate.sleep();
 
@@ -415,7 +415,7 @@ void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
 
     obs_mutex.lock();
 
-    p.x = odom.pose.pose.position.x; 
+    p.x = odom.pose.pose.position.x;
     p.y = odom.pose.pose.position.y;
     double laser_distance = sqrt(laser_offset_x*laser_offset_x + laser_offset_y*laser_offset_y);
     p.x += cos(robot_angle)*laser_distance;
@@ -460,7 +460,7 @@ void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
       ROS_WARN("Could not brake the robot!");
     }
 
-    obs_mutex.unlock(); 
+    obs_mutex.unlock();
     rate.sleep();
 
     // Read in new laser scan
@@ -472,7 +472,7 @@ void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
     obs_mutex.lock();
 
     // Retrieve odometry position
-    p.x = odom.pose.pose.position.x; 
+    p.x = odom.pose.pose.position.x;
     p.y = odom.pose.pose.position.y;
     p.x += cos(robot_angle)*laser_distance;
     p.y += sin(robot_angle)*laser_distance;
@@ -498,20 +498,20 @@ void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
 
   if (!aborted) detect_meetpoint_bypass = true;
   obs_mutex.unlock();
-  
+
   ros::Rate rate(15);
   rate.sleep();
 }
 
 /*
- * Returns yes iff the three closest obstacles (that are sufficiently far apart from each other, as  
+ * Returns yes iff the three closest obstacles (that are sufficiently far apart from each other, as
  * specified by meetpoint_bearing_angle_diff [in rad]) have almost equal distances from the robot (up to
- * a tolerance specified by meetpoint_threshold [in m]). If this is indeed a meetpoint, possibleBearings 
+ * a tolerance specified by meetpoint_threshold [in m]). If this is indeed a meetpoint, possibleBearings
  * contains a collection of possible directions [in rad] relative to its x-axis which the robot can take,
  * except from the reverse direction, i.e. 180 degrees.
  */
 bool GVGFollower::DetectMeetPoint(laser_node::Obstacles& obs, std::vector<double>& possibleBearings,
-				  double meetpoint_threshold, double meetpoint_bearing_angle_diff, 
+				  double meetpoint_threshold, double meetpoint_bearing_angle_diff,
 				  laser_node::Obstacles& meetpoint_obstacles) {
 
   std::vector<double> obstacleMinBearings;
@@ -522,10 +522,10 @@ bool GVGFollower::DetectMeetPoint(laser_node::Obstacles& obs, std::vector<double
     // For each slot we'll only accept one possible bearing, in order to avoid
     // having meetpoints that are detected by obstacles whose min bearings are very close.
 
-    std::vector<int> occupied_slots;            
+    std::vector<int> occupied_slots;
     double lp0 = obs.collection.at(0).min_distance;
     obstacleMinBearings.push_back(obs.collection.at(0).min_bearing);
-    int slot = (int) std::floor(obs.collection.at(0).min_bearing / meetpoint_bearing_angle_diff); 
+    int slot = (int) std::floor(obs.collection.at(0).min_bearing / meetpoint_bearing_angle_diff);
     occupied_slots.push_back(slot);
     occupied_slots.push_back(slot + 1);  // to ensure distance between possible bearings
     occupied_slots.push_back(slot - 1);
@@ -533,23 +533,23 @@ bool GVGFollower::DetectMeetPoint(laser_node::Obstacles& obs, std::vector<double
 
     for (int i = 1; i < (int) obs.collection.size(); i++) {
       double lpi = obs.collection.at(i).min_distance;
-      slot = (int) std::floor(obs.collection.at(i).min_bearing / meetpoint_bearing_angle_diff); 
+      slot = (int) std::floor(obs.collection.at(i).min_bearing / meetpoint_bearing_angle_diff);
 
-      if (std::abs(lp0 - lpi) < meetpoint_threshold && 
-          find(occupied_slots.begin(), occupied_slots.end(), slot) == occupied_slots.end()) {	 
+      if (std::abs(lp0 - lpi) < meetpoint_threshold &&
+          find(occupied_slots.begin(), occupied_slots.end(), slot) == occupied_slots.end()) {
 
         obstacleMinBearings.push_back(obs.collection.at(i).min_bearing);
         occupied_slots.push_back(slot);
         occupied_slots.push_back(slot + 1);
         occupied_slots.push_back(slot - 1);
         meetpoint_obstacles.collection.push_back(obs.collection.at(i));
-      } 
+      }
     }
   }
 
   // Make sure we did not miss any of the obstacles
   if (obstacleMinBearings.size() != obs.collection.size()) return false;
-  
+
   std::sort(obstacleMinBearings.begin(), obstacleMinBearings.end());
   for (int i = 1; i <= (int) obstacleMinBearings.size(); i++) {
     double bearing;
@@ -613,8 +613,8 @@ bool GVGFollower::SelectEdge(gvg::SelectEdge::Request& req, gvg::SelectEdge::Res
   r.sleep();
   ros::spinOnce();
 
-  geometry_msgs::Point32 p; 
-  p.x = odom.pose.pose.position.x; 
+  geometry_msgs::Point32 p;
+  p.x = odom.pose.pose.position.x;
   p.y = odom.pose.pose.position.y;
 
   /* Calculate the robot's absolute orientation */
@@ -665,13 +665,13 @@ bool GVGFollower::DetectEndPoint(laser_node::Obstacles& obs) {
     return false;
   } else {
     if (detect_meetpoint_bypass) return obs.merged_collection.size() == 1;
-    else return obs.collection.at(0).min_distance < CLOSEST_ALLOWABLE_DIST || obs.collection.size() == 1;  
+    else return obs.collection.at(0).min_distance < CLOSEST_ALLOWABLE_DIST || obs.collection.size() == 1;
   }
 }
 
 /*
- * Pairs up the closest obstacle with another obstacle, so that the robot can travel in between these 
- * two obstacles. 
+ * Pairs up the closest obstacle with another obstacle, so that the robot can travel in between these
+ * two obstacles.
  */
 void GVGFollower::ChooseBestMinPair(laser_node::Obstacles& obs, laser_node::Obstacle& left, laser_node::Obstacle& right) {
 
@@ -679,13 +679,13 @@ void GVGFollower::ChooseBestMinPair(laser_node::Obstacles& obs, laser_node::Obst
   assert((int) obs.collection.size() >= 2);
 
   if (!found) {
-    double bearingOfMin = obs.collection.at(0).min_bearing; 
-   
+    double bearingOfMin = obs.collection.at(0).min_bearing;
+
     for (int i = 1; i < (int) obs.collection.size(); i++) { // Choose the pair that has a big bearing difference
 
-      double bearingOfCandidate = obs.collection.at(i).min_bearing; 
-      bool haveBigBearingDifference = std::abs(bearingOfMin - bearingOfCandidate) >= SAME_OBJECT_MIN_BEARING; 
-      
+      double bearingOfCandidate = obs.collection.at(i).min_bearing;
+      bool haveBigBearingDifference = std::abs(bearingOfMin - bearingOfCandidate) >= SAME_OBJECT_MIN_BEARING;
+
       if (obs.collection.at(i).min_index < obs.collection.at(0).min_index && haveBigBearingDifference) {
 	right = obs.collection.at(i);
 	left  = obs.collection.at(0);
@@ -699,7 +699,7 @@ void GVGFollower::ChooseBestMinPair(laser_node::Obstacles& obs, laser_node::Obst
       }
     }
   }
-    
+
   if (!found && obs.collection.at(0).min_index < obs.collection.at(1).min_index) {
     right = obs.collection.at(0);
     left  = obs.collection.at(1);
@@ -714,10 +714,10 @@ void GVGFollower::ChooseBestMinPair(laser_node::Obstacles& obs, laser_node::Obst
  * Performs follow edge motions until a meetpoint or endpoint is seen.
  */
 void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goal) {
-  
+
   // Copy information so we can overwrite it with updating parameter do_move
   bool do_move = goal->do_move;
-  
+
   ros::Rate r(10);
   while (!obstacles_read) {
     ros::spinOnce();
@@ -733,7 +733,7 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
     possible_bearings.clear();
     meetpoint_obstacles.collection.clear();
     obs_mutex.lock();
-    
+
     if (obstacles.collection.size() == 0) {
       std::string error = "Could not find any obstacles to do follow edge";
       ROS_INFO(error.c_str());
@@ -744,8 +744,8 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
       return;
     }
 
-    geometry_msgs::Point32 p; 
-    p.x = odom.pose.pose.position.x; 
+    geometry_msgs::Point32 p;
+    p.x = odom.pose.pose.position.x;
     p.y = odom.pose.pose.position.y;
 
     /* Calculate the robot's absolute orientation */
@@ -769,7 +769,7 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
       if (!brake_cln.call(srv)) {
 	      ROS_WARN("follow edge could not stop the robot!");
       }
-      
+
       // detected endpoint through the navigation to meetpoint, which means we need to use the merged obstacles collection set.
       if (detect_meetpoint_bypass) {
         closest_obstacles.clear();
@@ -793,7 +793,7 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
         ROS_WARN("Could not call addEndpoint on Mapper!");
         return;
       }
-      
+
       gvg_mapper::GVGNode result;
       result.node_id = add_endpoint_srv.response.node.node_id;
       result.p = add_endpoint_srv.response.node.p;
@@ -807,7 +807,7 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
 
       follow_edge_srv.setSucceeded(follow_edge_res);
       obs_mutex.unlock();
-      
+
       return;
     }
 
@@ -831,19 +831,19 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
       while (rel_angle > M_PI) rel_angle -= 2*M_PI;
       while (rel_angle < -M_PI) rel_angle += 2*M_PI;
       obs.min_bearing = rel_angle;
-      obs.closest_point.x = obs.min_distance*cos(rel_angle); 
-      obs.closest_point.y = obs.min_distance*sin(rel_angle); 
+      obs.closest_point.x = obs.min_distance*cos(rel_angle);
+      obs.closest_point.y = obs.min_distance*sin(rel_angle);
       local_obstacles.collection.push_back(obs);
     }
 
     bool onMeetpoint = false;
-    if (detect_meetpoint_bypass) onMeetpoint = DetectMeetPoint(local_obstacles, possible_bearings, 100, 
+    if (detect_meetpoint_bypass) onMeetpoint = DetectMeetPoint(local_obstacles, possible_bearings, 100,
 				       MEETPOINT_BEARING_ANGLE_DIFF, meetpoint_obstacles);
- 
+
     if (onMeetpoint && do_move) {
       detect_meetpoint_bypass = false;
       ROS_INFO("Meetpoint found!");
-      
+
       robot_node::Brake srv;
       srv.request.brake = true;
       if (!brake_cln.call(srv)) {
@@ -869,7 +869,7 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
         ROS_WARN("Could not call addMeetpoint on Mapper!");
         return;
       }
-      
+
       gvg_mapper::GVGNode result;
       result.node_id = add_meetpoint_srv.response.node.node_id;
       result.p = add_meetpoint_srv.response.node.p;
@@ -918,7 +918,7 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
             laser_node::Obstacle obs = obstacles.collection.at(i);
             obs.closest_point = new_point;
             temp.push_back(obs);
-          }       
+          }
           existing = true;
           break;
         }
@@ -935,25 +935,25 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
         temp.push_back(obs);
       }
     }
-    
+
     closest_obstacles.clear();
     closest_obstacles.assign(temp.begin(), temp.end());
-  
-    
 
-    
+
+
+
       // Stop following GVG and navigate locally to current closest meetpoint
       if (do_move && closest_obstacles.size() >= 3) {
         ROS_INFO("Close to Meetpoint: starting navigation to meetpoint");
         double ang_vel;
         nh.getParam("/indoor/gvg/agent/ang_vel", ang_vel);
         obs_mutex.unlock();
-        NavigateToMeetpoint(goal->lin_vel, ang_vel);
+        NavigateToMeetpoint(goal->lin_vel/3, ang_vel);
       }
       else {
-        // if the robot is moved manually then follow edge will not terminate 
-        // on endpoints so nothing guarantees there will be more than 2 obstacles  
-        if (!do_move && obstacles.collection.size() >= 2) { 
+        // if the robot is moved manually then follow edge will not terminate
+        // on endpoints so nothing guarantees there will be more than 2 obstacles
+        if (!do_move && obstacles.collection.size() >= 2) {
           InstantaneousFollowEdge(obstacles, do_move, goal->lin_vel);
         } else if (do_move) {
           InstantaneousFollowEdge(obstacles, do_move, goal->lin_vel);
@@ -962,7 +962,7 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
       }
 
       rate.sleep();
-  
+
   }
 
   if (follow_edge_srv.isPreemptRequested()) {

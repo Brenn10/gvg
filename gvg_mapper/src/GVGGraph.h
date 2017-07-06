@@ -29,14 +29,14 @@
 /*
  * Radius of search for an existing vertex when we are trying to perform loop closure. In m.
  */
-#define SAME_VERTEX_RADIUS 0.5 
-
+#define SAME_VERTEX_RADIUS 0.5
+#define MAX_ERROR_AUTOMATCH .02
 
 class EdgeBearing;
 
 class UncertaintyEllipse {
  public:
-  
+
   geometry_msgs::Point32 center;
   double halfaxis1;
   double halfaxis2;
@@ -50,15 +50,15 @@ class GVGVertex {
  public:
 
   int node_id;
- 
+
   geometry_msgs::Point32 p;
 
-  // For meetpoints, the number of obstacles that 
-  // defined it. For endpoints, 1.   
+  // For meetpoints, the number of obstacles that
+  // defined it. For endpoints, 1.
   int expected_degree;
 
   // Proximity to the closest obstacle
-  double closest_distance; 
+  double closest_distance;
 
   double vertex_angle;
 
@@ -67,7 +67,7 @@ class GVGVertex {
   // List of possible bearings (absolute angle) from vertex
   std::vector<EdgeBearing> possible_bearings;
 
-  // True iff these two vertices are estimated to be similar 
+  // True iff these two vertices are estimated to be similar
   bool similar_vertex(GVGVertex& v);
 
   // edge angle diffs (Use the angle edge diff stored in bearings, relative to edge 0)
@@ -93,7 +93,7 @@ class GVGEdge {
 
 typedef boost::property<boost::edge_weight_t, double> EdgeWeightProperty;
 
-typedef boost::adjacency_list<boost::vecS, boost::vecS, 
+typedef boost::adjacency_list<boost::vecS, boost::vecS,
                               boost::undirectedS, GVGVertex, EdgeWeightProperty> Graph;
 
 typedef boost::graph_traits<Graph>::vertex_descriptor     Vertex;
@@ -125,27 +125,27 @@ class GVGGraph {
   std::vector<double> edge_angle_diffs_error(std::vector<double>& edge_angle_diffs1, std::vector<double>& edge_angle_diffs2);
 
   /*
-   * Adds a new meetpoint to the GVG graph. p is the location of the meetpoint in world  
+   * Adds a new meetpoint to the GVG graph. p is the location of the meetpoint in world
    * coordinates, closest_distance is the distance to the (at least) three closest obstacles
    * that define the meetpoint. possible_bearings are the angles that the robot can turn by
-   * to choose another GVG edge. These angles are given in laser coordinates, i.e. with respect 
-   * to the x-axis, positive angles on its right, negative on its left. The angles are in degs.   
+   * to choose another GVG edge. These angles are given in laser coordinates, i.e. with respect
+   * to the x-axis, positive angles on its right, negative on its left. The angles are in degs.
    */
   bool addMeetpoint(gvg_mapper::AddMeetpoint::Request& req, gvg_mapper::AddMeetpoint::Response& res);
-  
+
   /*
-   * Adds a new endpoint to the GVG graph. p is the location of the endpoint in world  
-   * coordinates, closest_distance is the distance to the closest obstacle that defines the 
-   * endpoint.    
+   * Adds a new endpoint to the GVG graph. p is the location of the endpoint in world
+   * coordinates, closest_distance is the distance to the closest obstacle that defines the
+   * endpoint.
    */
   bool addEndpoint(gvg_mapper::AddEndpoint::Request& req, gvg_mapper::AddEndpoint::Response& res);
 
   /*
-   * The robot is currently traversing an edge, so just extend that edge in the 
-   * internal representation. 
+   * The robot is currently traversing an edge, so just extend that edge in the
+   * internal representation.
    */
   bool extendGVGEdge(gvg_mapper::ExtendEdge::Request& req, gvg_mapper::ExtendEdge::Response& res);
-  
+
   /*
    * Service call for Planner, returns the list of possible bearings at vertex node_id.
    */
@@ -156,7 +156,7 @@ class GVGGraph {
   bool checkRelocalize(gvg_mapper::CheckRelocalize::Request& req, gvg_mapper::CheckRelocalize::Response& res);
 
   bool loadSavedMap(gvg_mapper::LoadSavedMap::Request& req, gvg_mapper::LoadSavedMap::Response& res);
- 
+
   bool retrieveEdges(gvg_mapper::RetrieveEdges::Request& req, gvg_mapper::RetrieveEdges::Response& res);
 
  private:
@@ -172,7 +172,7 @@ class GVGGraph {
   // Physical distance between laser range finder and robot center
   double laser_offset_x;
   double laser_offset_y;
-  double relocalize_epsilon;  
+  double relocalize_epsilon;
 
   int arriving_bearing;
   bool mapLoadLocalization;
@@ -189,23 +189,23 @@ class GVGGraph {
   Vertex lastVertex;
   int lastVertexBearing;
   std::vector<GVGEdge> edges_list;
-  
+
   Vertex nullVertex();
   Vertex addVertex(GVGVertex& v, double robot_angle, geometry_msgs::PoseWithCovariance& pose);
   std::string vertex_state(int node_id);
   std::vector<int> computeDijkstra(Vertex v, std::vector<double> &distances);
-  
+
   // ID of the closest vertex with unexplored edges when path planning.
   int closest_unexplored_vertex;
   double last_edge_length;
-  
+
   bool relocalize;
   double robot_angle_correction;
   std::vector<double> local_possible_bearings;
-  
+
   // Ellipse information
   UncertaintyEllipse ellipse;
- 
+
   /* The (at least three) objects that are going to define a meetpoint need to have
      closest point ranges that differ no more than this quantity. In m. */
   double MEETPOINT_THRESHOLD;
@@ -231,4 +231,4 @@ double abs_angle(double theta, double phi);
 
 double absoluteToRelativeAngle(double robot_angle, double absolute_angle);
 
-#endif 
+#endif

@@ -31,7 +31,7 @@ bool UncertaintyEllipse::contains(geometry_msgs::Point32& p) {
  * edge_angle_diffs1 should be the current vertex we are trying to match, and edge_angle_diffs2 should iterate over all the vertices in our current GVG Graph.
  * Returns bearing ID which minimizes the error that matches the two vertices. -1 if the # of bearings differ (not same vertex).
  */
-vector<double> GVGGraph::edge_angle_diffs_error(std::vector<double>& edge_angle_diffs1, 
+vector<double> GVGGraph::edge_angle_diffs_error(std::vector<double>& edge_angle_diffs1,
 			   std::vector<double>& edge_angle_diffs2) {
 
   vector<double> errors;
@@ -101,9 +101,9 @@ GVGGraph::GVGGraph() {
 
 /*
  * Adds a new meetpoint or endpoint to the GVG,
- * unless the vertex can be matched to an existing 
+ * unless the vertex can be matched to an existing
  * vertex in the graph. v has no node_id before its
- * signature is searched in the graph. 
+ * signature is searched in the graph.
  */
 Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::PoseWithCovariance& pose) {
   Vertex target = nullVertex();
@@ -131,7 +131,8 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
     }
   }
   // Partial vertex matching with full oracle or partial oracle
-  else {
+  else
+  {
     // Find the vertex with the smallest least squares error
     if (num_vertices(G) > 0) {
       // Create uncertainty ellipse centered at robot position. Any meetpoint outside of the ellipse won't be considered for the least squares error.
@@ -161,7 +162,7 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
       Vertex_iter    vertex, vertex_end;
       for (tie(vertex, vertex_end) = vertices(G); vertex != vertex_end; vertex++) {
         if ((ellipse.contains(G[*vertex].p) || !mapLoadLocalization) && (abs(v.closest_distance - G[*vertex].closest_distance) <= closest_distance_threshold) && (v.expected_degree == G[*vertex].expected_degree)) {
-          
+
           // Check if we have already traveled this edge by looking at edge signatures
           vector<int> dismissed_edges;
           vector<EdgeBearing> bearings = G[*vertex].possible_bearings;
@@ -184,7 +185,7 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
             }
             if (arriving_bearing != -1) break;
           }
-                    
+
           if (arriving_bearing == -1) {
             // Calculate the errors for each edge angle diffs configuration
             vector<double> errors = edge_angle_diffs_error(v.edge_angle_diffs, G[*vertex].edge_angle_diffs);
@@ -223,7 +224,7 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
         if (str == "y") {
           cout << "Is this information correct? (Type 'n' for no, otherwise type anything)\n";
           getline(cin, str);
-          // User input vertex already exists 
+          // User input vertex already exists
           if (str == "n") {
             cout << "Node ID of matching vertex?\n";
             getline(cin, str);
@@ -237,14 +238,52 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
         }
         else target = nullVertex();
       }
+      else if (vertex_matching_policy == 2)
+      { //somewhat smart with user interface if unsure
+        //if found a new vertex, or not sure of bearing, or not sure of vertex match, ask user, otherwise, use existing values
+        if(target==nullVertex() or min_error==-1 or min_error>MAX_ERROR_AUTOMATCH)
+        {
+          // Confirm the correct vertex
+          if (target == nullVertex() || arriving_bearing == -1)
+          {
+            ROS_WARN("No matching meetpoint found");
+            target = nullVertex();
+            arriving_bearing = -1;
+          }
+          else ROS_WARN("Vertex matching: Found vertex %d from bearing %d with least squares error %f", (int)target, arriving_bearing, min_error);
+          string str = "";
+          string str2 = "";
+
+          cout << "Is this an existing vertex? (Type 'y' for yes, otherwise type anything)\n";
+          getline(cin, str);
+          if (str == "y")
+          {
+            cout << "Is this information correct? (Type 'n' for no, otherwise type anything)\n";
+            getline(cin, str);
+            // User input vertex already exists
+            if (str == "n")
+            {
+              cout << "Node ID of matching vertex?\n";
+              getline(cin, str);
+              stringstream stream(str);
+              stream >> target;
+              cout << "Bearing we arrived from?\n";
+              getline(cin, str2);
+              stringstream stream2(str2);
+              stream2 >> arriving_bearing;
+            }
+          }
+          else target = nullVertex();
+        }
+      }
     }
   }
-  
+
   if (num_vertices(G) > 0) {
     srand(time(NULL));
     float r = (float)rand()/(float)RAND_MAX;
     if (r <= this->relocalize_epsilon) relocalize = true;
-    cout << "Current robot orientation: " << robot_angle * 180.0/M_PI << endl; 
+    cout << "Current robot orientation: " << robot_angle * 180.0/M_PI << endl;
   }
 
   if (target == nullVertex()) {
@@ -256,17 +295,17 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
   } else {
     ROS_INFO("Found matching vertex %d", G[target].node_id);
     mapLoadLocalization = true;
-    
+
     localizer::InitLoadMapTransform srv;
     srv.request.bearing_angle = abs_angle(G[target].vertex_angle, G[target].possible_bearings.at(arriving_bearing).edge_angle_diff);
     srv.request.bearing_angle = abs_angle(srv.request.bearing_angle, M_PI);
-    
+
     if (!init_load_map_transform_cln.call(srv)) {
       ROS_WARN("Could not call localizer to pass init load map bearing information!");
     }
-    
+
   }
-  
+
   // TODO: Uncertain if code is useful when we have robot_pose_ekf. Fix the robot orientation relative to the arriving bearing by looking at the possible bearings angle differences
   /*if (num_vertices(G) > 0) {
     robot_angle_correction = 0;
@@ -280,12 +319,12 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
     G[target].possible_bearings.at(arriving_bearing).visited = true;
     // Update the vertex bearings to the newly added edge
     if (G[target].possible_bearings.at(arriving_bearing).edge_id == -1) {
-      
+
       // Update the old vertex bearing information
       G[lastVertex].possible_bearings.at(lastVertexBearing).edge_id = currentEdge.edge_id;
       G[lastVertex].possible_bearings.at(lastVertexBearing).visited = true;
       unexploredEdgesCount.at(G[lastVertex].node_id) -= 1;
-      
+
       G[target].possible_bearings.at(arriving_bearing).edge_id = currentEdge.edge_id;
       unexploredEdgesCount.at(G[target].node_id) -= 1;
       // Add edge to graph
@@ -295,7 +334,7 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
       currentEdge.source = G[lastVertex].node_id;
       currentEdge.target = G[target].node_id;
       edges_list.push_back(currentEdge);
-      
+
       // Publish edge information for visualization purposes
       gvg_mapper::GVGEdgeMsg msg;
       msg.header = header;
@@ -309,11 +348,11 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
     }
   }
 
-  // Create new edge between this vertex and next visited vertex 
+  // Create new edge between this vertex and next visited vertex
   last_edge_length = currentEdge.length;
   GVGEdge edge;
   edge.edge_id = next_edge_id++;
-  edge.line.clear(); 
+  edge.line.clear();
   currentEdge = edge;
 
   lastVertex = target;
@@ -321,11 +360,11 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
 }
 
 /*
- * Adds a new meetpoint to the GVG graph. p is the location of the meetpoint in world  
+ * Adds a new meetpoint to the GVG graph. p is the location of the meetpoint in world
  * coordinates, closest_distance is the distance to the (at least) three closest obstacles
  * that define the meetpoint. possible_bearings are the angles that the robot can turn by
- * to choose another GVG edge. These angles are given in laser coordinates, i.e. with respect 
- * to the x-axis, positive angles on its right, negative on its left. The angles are in rads.   
+ * to choose another GVG edge. These angles are given in laser coordinates, i.e. with respect
+ * to the x-axis, positive angles on its right, negative on its left. The angles are in rads.
  */
 bool GVGGraph::addMeetpoint(gvg_mapper::AddMeetpoint::Request& req, gvg_mapper::AddMeetpoint::Response& res) {
   GVGVertex v;
@@ -375,7 +414,7 @@ bool GVGGraph::addMeetpoint(gvg_mapper::AddMeetpoint::Request& req, gvg_mapper::
     bearing.edge_id = -1;
     for (int j = 0; j <= i; j++) {
       bearing.edge_angle_diff = bearing.edge_angle_diff + edge_angle_diffs.at(j);
-    } 
+    }
     bearing.visited = false;
     v.possible_bearings.push_back(bearing);
   }
@@ -390,7 +429,7 @@ bool GVGGraph::addMeetpoint(gvg_mapper::AddMeetpoint::Request& req, gvg_mapper::
   srv.request.id = v.node_id;
   srv.request.x = laser_offset_x;
   srv.request.y = laser_offset_y;
-  
+
   double angle = v.possible_bearings.at(0).edge_angle_diff;
   if (angle > M_PI) angle -= 2*M_PI;
   double absolute = abs_angle(v.vertex_angle, angle);
@@ -403,9 +442,9 @@ bool GVGGraph::addMeetpoint(gvg_mapper::AddMeetpoint::Request& req, gvg_mapper::
   relative_bearing += robot_angle_correction;
   if (relative_bearing > M_PI) relative_bearing -= 2*M_PI;
   else if (relative_bearing < -M_PI) relative_bearing += 2*M_PI;
-  
+
   srv.request.yaw = relative_bearing;
-  
+
   if (!process_meetpoint_cln.call(srv)) {
     ROS_WARN("Could not call process meetpoint from localizer!");
   }
@@ -424,7 +463,7 @@ bool GVGGraph::addMeetpoint(gvg_mapper::AddMeetpoint::Request& req, gvg_mapper::
   Vertex_iter    vertex, vertex_end;
   for (tie(vertex, vertex_end) = vertices(G); vertex != vertex_end; vertex++) {
     gvg_mapper::GVGNode msg;
-    msg.node_id = G[*vertex].node_id;      
+    msg.node_id = G[*vertex].node_id;
     msg.p       = G[*vertex].p;
     msg.degree  = G[*vertex].expected_degree;
     std::vector<gvg_mapper::EdgeBearingMsg> bearings;
@@ -445,9 +484,9 @@ bool GVGGraph::addMeetpoint(gvg_mapper::AddMeetpoint::Request& req, gvg_mapper::
     msg.header = req.header;
 
     gvg_node_pub.publish(msg);
-    
-    if (msg.node_id == v.node_id) res.node = msg;  
-    
+
+    if (msg.node_id == v.node_id) res.node = msg;
+
     ros::Rate r(50);
     r.sleep();
   }
@@ -456,9 +495,9 @@ bool GVGGraph::addMeetpoint(gvg_mapper::AddMeetpoint::Request& req, gvg_mapper::
 }
 
 /*
- * Adds a new endpoint to the GVG graph. p is the location of the endpoint in world  
- * coordinates, closest_distance is the distance to the closest obstacle that defines the 
- * endpoint.    
+ * Adds a new endpoint to the GVG graph. p is the location of the endpoint in world
+ * coordinates, closest_distance is the distance to the closest obstacle that defines the
+ * endpoint.
  */
 bool GVGGraph::addEndpoint(gvg_mapper::AddEndpoint::Request& req, gvg_mapper::AddEndpoint::Response& res) {
   GVGVertex v;
@@ -481,13 +520,13 @@ bool GVGGraph::addEndpoint(gvg_mapper::AddEndpoint::Request& req, gvg_mapper::Ad
   v.edge_angle_diffs.push_back(2*M_PI);
 
   v = G[addVertex(v, req.robot_angle, req.pose)];
-  
+
   // Service call to localizer for process meetpoint
   localizer::UpdateFilter srv;
   srv.request.id = v.node_id;
   srv.request.x = laser_offset_x;
   srv.request.y = laser_offset_y;
-  
+
   double angle = v.possible_bearings.at(0).edge_angle_diff;
   if (angle > M_PI) angle -= 2*M_PI;
   double absolute = abs_angle(v.vertex_angle, angle);
@@ -500,9 +539,9 @@ bool GVGGraph::addEndpoint(gvg_mapper::AddEndpoint::Request& req, gvg_mapper::Ad
   relative_bearing += robot_angle_correction;
   if (relative_bearing > M_PI) relative_bearing -= 2*M_PI;
   else if (relative_bearing < -M_PI) relative_bearing += 2*M_PI;
-  
+
   srv.request.yaw = relative_bearing;
-  
+
   if (!process_meetpoint_cln.call(srv)) {
     ROS_WARN("Could not call process meetpoint from localizer!");
   }
@@ -517,11 +556,11 @@ bool GVGGraph::addEndpoint(gvg_mapper::AddEndpoint::Request& req, gvg_mapper::Ad
     G[meetpoint_id].p = p;
     G[meetpoint_id].vertex_angle = X.at(i+2);
   }
- 
+
   Vertex_iter    vertex, vertex_end;
   for (tie(vertex, vertex_end) = vertices(G); vertex != vertex_end; vertex++) {
     gvg_mapper::GVGNode msg;
-    msg.node_id = G[*vertex].node_id;      
+    msg.node_id = G[*vertex].node_id;
     msg.p       = G[*vertex].p;
     msg.degree  = G[*vertex].expected_degree;
     std::vector<gvg_mapper::EdgeBearingMsg> bearings;
@@ -542,19 +581,19 @@ bool GVGGraph::addEndpoint(gvg_mapper::AddEndpoint::Request& req, gvg_mapper::Ad
     msg.header = req.header;
 
     gvg_node_pub.publish(msg);
-    
-    if (msg.node_id == v.node_id) res.node = msg;  
-    
+
+    if (msg.node_id == v.node_id) res.node = msg;
+
     ros::Rate r(50);
     r.sleep();
-  }  
-  
+  }
+
   return true;
 }
 
 /*
- * The robot is currently traversing an edge, so just extend that edge in the 
- * internal representation. 
+ * The robot is currently traversing an edge, so just extend that edge in the
+ * internal representation.
  */
 bool GVGGraph::extendGVGEdge(gvg_mapper::ExtendEdge::Request& req, gvg_mapper::ExtendEdge::Response& res) {
   if ((int) currentEdge.line.size() == 0) {
@@ -572,7 +611,7 @@ bool GVGGraph::extendGVGEdge(gvg_mapper::ExtendEdge::Request& req, gvg_mapper::E
   }
 
   currentEdge.line.push_back(req.p_stamped);
-  
+
   res.success = true;
   return true;
 }
@@ -613,7 +652,7 @@ bool GVGGraph::checkRelocalize(gvg_mapper::CheckRelocalize::Request& req, gvg_ma
         }
       }
     }
-    if (last_edge_length >= 3.0 && last_edge_length <= max(ellipse.halfaxis1, ellipse.halfaxis2)) 
+    if (last_edge_length >= 3.0 && last_edge_length <= max(ellipse.halfaxis1, ellipse.halfaxis2))
     {
       if(alwaysRelocalize==1)
       {
@@ -655,7 +694,7 @@ bool GVGGraph::retrieveBearings(gvg_mapper::RetrieveBearings::Request& req, gvg_
   int node_id = req.node_id;
   // No target, so exploration mode
   if (req.target == -1) {
-   
+
     Vertex currentVertex = nullVertex();
     Vertex_iter    vertex, vertex_end;
     for (tie(vertex, vertex_end) = vertices(G); vertex != vertex_end; vertex++) {
@@ -799,7 +838,7 @@ bool GVGGraph::retrieveBearings(gvg_mapper::RetrieveBearings::Request& req, gvg_
 }
 
 bool GVGGraph::retrieveEdges(gvg_mapper::RetrieveEdges::Request& req, gvg_mapper::RetrieveEdges::Response& res) {
-  
+
   for (int i = 0; i < edges_list.size(); i++) {
     GVGEdge e = edges_list.at(i);
     if (e.source == req.node_id || e.target == req.node_id) {
@@ -809,11 +848,11 @@ bool GVGGraph::retrieveEdges(gvg_mapper::RetrieveEdges::Request& req, gvg_mapper
       msg.target = e.target;
       msg.length = e.length;
       msg.line.assign(e.line.begin(), e.line.end());
-      
+
       res.edges.push_back(msg);
     }
   }
-  
+
   return true;
 }
 
@@ -824,7 +863,7 @@ bool GVGGraph::retrievePath(gvg_mapper::RetrievePath::Request& req, gvg_mapper::
   vector<int> parents;
   vector<double> distances(num_vertices(G));
   res.distance = 0.0;
-  
+
   Vertex currentVertex = nullVertex();
   Vertex_iter vertex, vertex_end;
   for (tie(vertex, vertex_end) = vertices(G); vertex != vertex_end; vertex++) {
@@ -832,14 +871,14 @@ bool GVGGraph::retrievePath(gvg_mapper::RetrievePath::Request& req, gvg_mapper::
       currentVertex = *vertex;
     }
   }
-    
+
   parents = computeDijkstra(currentVertex, distances);
-  
-  
+
+
   // Choose the next target, depending on the policy.
   int target = req.target;
   if (req.target == -1) target = closest_unexplored_vertex;
-  
+
   // Entire map has been explored.
   if (target == -1) {
     target = closest_unexplored_vertex;
@@ -868,7 +907,7 @@ bool GVGGraph::retrievePath(gvg_mapper::RetrievePath::Request& req, gvg_mapper::
 /*
  * Returns Dijkstra parents list for each vertex.
  */
-vector<int> GVGGraph::computeDijkstra(Vertex v, vector<double> &distances) { 
+vector<int> GVGGraph::computeDijkstra(Vertex v, vector<double> &distances) {
   // Create things for Dijkstra
   vector<Vertex> parents(num_vertices(G)); // To store parents
 
@@ -878,7 +917,7 @@ vector<int> GVGGraph::computeDijkstra(Vertex v, vector<double> &distances) {
   closest_unexplored_vertex = -1;
   double distance = INFINITY;
   boost::graph_traits < Graph >::vertex_iterator vertexIterator, vend;
-  for (boost::tie(vertexIterator, vend) = boost::vertices(G); vertexIterator != vend; ++vertexIterator) 
+  for (boost::tie(vertexIterator, vend) = boost::vertices(G); vertexIterator != vend; ++vertexIterator)
   {
     if ((distances[*vertexIterator] < distance)&&(unexploredEdgesCount.at(*vertexIterator) > 0)) {
       closest_unexplored_vertex = *vertexIterator;
@@ -890,15 +929,15 @@ vector<int> GVGGraph::computeDijkstra(Vertex v, vector<double> &distances) {
 }
 
 bool GVGGraph::loadSavedMap(gvg_mapper::LoadSavedMap::Request& req, gvg_mapper::LoadSavedMap::Response& res) {
-    
-  mapLoadLocalization = false;  
+
+  mapLoadLocalization = false;
   int max_node_id = 0;
   for (int i = 0; i < req.nodes.size(); i++) {
     // Create vertex and copy information
     GVGVertex v;
     gvg_mapper::GVGNode node = req.nodes.at(i);
     v.node_id = node.node_id;
-    if (v.node_id > max_node_id) max_node_id = v.node_id;    
+    if (v.node_id > max_node_id) max_node_id = v.node_id;
     v.p = node.p;
     v.expected_degree = node.degree;
     v.closest_distance = node.closest_distance;
@@ -916,12 +955,12 @@ bool GVGGraph::loadSavedMap(gvg_mapper::LoadSavedMap::Request& req, gvg_mapper::
     }
     v.edge_angle_diffs.assign(node.edge_angle_diffs.begin(), node.edge_angle_diffs.end());
     v.vertex_angle = node.vertex_angle;
-    
+
     // Add vertex to graph
     unexploredEdgesCount.push_back(num_unexplored);
     add_vertex(v, G);
   }
-  
+
   int max_edge_id = 0;
   for (int i = 0; i < req.edges.size(); i++) {
     GVGEdge e;
@@ -932,14 +971,14 @@ bool GVGGraph::loadSavedMap(gvg_mapper::LoadSavedMap::Request& req, gvg_mapper::
     e.target = em.target;
     e.length = em.length;
     e.line.assign(em.line.begin(), em.line.end());
-    
+
     // Create EWP and add edge to graph G
     EdgeWeightProperty weight(e.length);
     add_edge(e.source, e.target, weight, G);
     add_edge(e.target, e.source, weight, G);
     edges_list.push_back(e);
   }
-    
+
   next_node_id = max_node_id + 1;
   next_edge_id = max_edge_id + 1;
   res.success=true;
@@ -998,4 +1037,3 @@ string GVGGraph::vertex_state(int node_id) {
   }
   return ss.str();
 }
-

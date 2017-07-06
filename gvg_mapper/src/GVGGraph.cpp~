@@ -237,6 +237,40 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
         }
         else target = nullVertex();
       }
+      else if (vertex_matching_policy == 2) { //somewhat smart with user interface if unsure
+        //if found a new vertex, or not sure of bearing, or not sure of vertex match, ask user, otherwise, use existing y
+n
+	if(target==nullVertex() or min_error==-1 or min_error>MAX_ERROR_AUTOMATCH)
+        {
+          // Confirm the correct vertex
+          if (target == nullVertex() || arriving_bearing == -1) {
+            ROS_WARN("No matching meetpoint found");
+            target = nullVertex();
+            arriving_bearing = -1;
+          }
+          else ROS_WARN("Vertex matching: Found vertex %d from bearing %d with least squares error %f", (int)target, arriving_bearing, min_error);
+          string str = "";
+          string str2 = "";
+  
+          cout << "Is this an existing vertex? (Type 'y' for yes, otherwise type anything)\n";
+          getline(cin, str);
+          if (str == "y") {
+            cout << "Is this information correct? (Type 'n' for no, otherwise type anything)\n";
+            getline(cin, str);
+            // User input vertex already exists 
+            if (str == "n") {
+              cout << "Node ID of matching vertex?\n";
+              getline(cin, str);
+              stringstream stream(str);
+              stream >> target;
+              cout << "Bearing we arrived from?\n";
+              getline(cin, str2);
+              stringstream stream2(str2);
+              stream2 >> arriving_bearing;
+            }
+          }
+          else target = nullVertex();
+      }
     }
   }
   
