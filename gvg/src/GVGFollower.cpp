@@ -487,6 +487,8 @@ void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
       break;
     }
     ROS_INFO("distance: %f | meetpoint: (%f,%f)", distance, meetpoint.x, meetpoint.y);
+    //prevents an error of sometimes reaching theis, then sleeping, then being out of range on next check.
+    if(distance<MEETPOINT_THRESHOLD) break;
     r.sleep();
   } while (distance > MEETPOINT_THRESHOLD);
 

@@ -12,7 +12,7 @@
     <param name="relocalize_epsilon" type="double" value="0.1" />
     <param name="closest_distance_threshold" value="1.4" type="double" /> <!-- Distance from teh robot that hte meetpoints must be to allow it to be added: helps not add non-meetpoints -->
     <param name="exploration_policy" value="1" />    <!-- random walk = 0, ear-based = 1, user chosen = 2 -->
-    <param name="vertex_matching_policy" value="1" />       <!-- strictly odometry based = 0, user confirmation = 1, vertex matching = 2 -->
+    <param name="vertex_matching_policy" value="3" />       <!-- strictly odometry based = 0, user confirmation = 1, vertex matching = 2, mixed user and vertex matching =3 -->
     <param name="edge_length_threshold" value="1.5" type="double" />   <!-- cut-off threshold when comparing edge lengths (bearing matching) -->
     <param name="alwaysRelocalize" value="0" type="int" />   <!-- ask everytime=0, always relocalize=1, half the time relocalize=2 -->
   </node>

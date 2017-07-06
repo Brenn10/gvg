@@ -24,38 +24,38 @@
 
 /* The (at least three) objects that are going to define a meetpoint need to have
    closest point bearings that differ at least by this angle. In rad. */
-#define MEETPOINT_BEARING_ANGLE_DIFF 1.0471975512
+#define MEETPOINT_BEARING_ANGLE_DIFF .7
 
 /* Minimum bearing difference between the two obstacles that will be used in the
    GVG midline definition, while following a GVG edge. */
 #define SAME_OBJECT_MIN_BEARING 1.0471975512
 
-/* Less than 20cm away from obstacles is considered dangerous so the robot should 
- * drastically modify its trajectory.  
+/* Less than 20cm away from obstacles is considered dangerous so the robot should
+ * drastically modify its trajectory.
  */
-#define CLOSEST_ALLOWABLE_DIST 0.2 
+#define CLOSEST_ALLOWABLE_DIST 0.2
 
 class GVGFollower {
  public:
   GVGFollower();
 
   /*
-   * Pairs up the closest obstacle with another obstacle, so that the robot can travel in between these 
-   * two obstacles. 
+   * Pairs up the closest obstacle with another obstacle, so that the robot can travel in between these
+   * two obstacles.
    */
-  void   ChooseBestMinPair(laser_node::Obstacles& obstacles, 
+  void   ChooseBestMinPair(laser_node::Obstacles& obstacles,
 			   laser_node::Obstacle& left, laser_node::Obstacle& right);
-  
+
   /*
    * Computes the errors of the robot's current pose from the GVG pose. One error is the angular
-   * error which means that the robot's x-axis is not aligned with the equidistant line to the two 
-   * closest points. The other error is the distance of the robot's location to the equidistant line.  
+   * error which means that the robot's x-axis is not aligned with the equidistant line to the two
+   * closest points. The other error is the distance of the robot's location to the equidistant line.
    */
   void   DivergenceFromGVG(geometry_msgs::Point32& left, geometry_msgs::Point32& right, double& dy, double& dtheta_deg);
-  
+
   /*
    * Sends an instantaneous motion command to the robot so that it follows the
-   * current GVG edge based on the given obstacle readings. 
+   * current GVG edge based on the given obstacle readings.
    */
   void   InstantaneousFollowEdge(laser_node::Obstacles& obs, bool do_move, double lin_vel);
 
@@ -66,27 +66,27 @@ class GVGFollower {
   void   NavigateToMeetpoint(double lin_vel, double ang_vel);
 
   /*
-   * Moves the robot and orients it so that it is on the GVG, based on the 
-   * closest obstacle and the one that is opposite to it. 
+   * Moves the robot and orients it so that it is on the GVG, based on the
+   * closest obstacle and the one that is opposite to it.
    */
   bool   AccessGVG(gvg::Access::Request& req, gvg::Access::Response& res);
-  
+
   /*
-   * Returns yes iff the three closest obstacles (that are sufficiently far apart from each other, as  
+   * Returns yes iff the three closest obstacles (that are sufficiently far apart from each other, as
    * specified by meetpoint_bearing_angle_diff [in rad]) have almost equal distances from the robot (up to
-   * a tolerance specified by meetpoint_threshold [in m]). If this is indeed a meetpoint, possibleBearings 
+   * a tolerance specified by meetpoint_threshold [in m]). If this is indeed a meetpoint, possibleBearings
    * contains a collection of possible directions [in rad] relative to its x-axis which the robot can take,
    * except from the reverse direction, i.e. 180 degrees.
    */
   bool   DetectMeetPoint(laser_node::Obstacles& obs, std::vector<double>& possibleBearings,
-				double meetpoint_threshold, double meetpoint_bearing_angle_diff, 
+				double meetpoint_threshold, double meetpoint_bearing_angle_diff,
 				laser_node::Obstacles& meetpoint_obstacles);
 
   /*
    * Returns true iff the robot is very close to an obstacle or if there is only one obstacle.
    */
   bool   DetectEndPoint(laser_node::Obstacles& obs);
-  
+
   /*
    * Selects one edge to follow from the given options that exist at this meetpoint.
    * Moves ahead a bit to ensure that the edge will be taken by follow edge. Returns true
@@ -95,12 +95,12 @@ class GVGFollower {
   bool SelectEdge(gvg::SelectEdge::Request& req, gvg::SelectEdge::Response& res);
 
   /*
-  void   DecideExplorationStrategy(std::vector<double>& allAdjacentEdgeBearings, 
+  void   DecideExplorationStrategy(std::vector<double>& allAdjacentEdgeBearings,
 				   std::vector<double>& edgeBearingsThatShouldBeFollowed,
 				   GVGGraph& G);
   */
 
-  
+
 
  private:
 
@@ -110,10 +110,10 @@ class GVGFollower {
   gvg::FollowEdgeFeedback                               follow_edge_fbk;
   gvg::FollowEdgeResult                                 follow_edge_res;
 
-  boost::signals2::mutex obs_mutex; 
+  boost::signals2::mutex obs_mutex;
   laser_node::Obstacles  obstacles;
-  ros::Time              timeOfLastMeetpoint;        
-  nav_msgs::Odometry     odom; 
+  ros::Time              timeOfLastMeetpoint;
+  nav_msgs::Odometry     odom;
   bool                   obstacles_read;
   bool                   detect_meetpoint_bypass;
 
@@ -126,10 +126,10 @@ class GVGFollower {
   double MEETPOINT_THRESHOLD;
   double LEAVE_MEETPOINT_MIN_DIST;
   double LEAVE_MEETPOINT_MAX_DIST;
-  
+
   double laser_offset_x;
   double laser_offset_y;
- 
+
   ros::ServiceServer     access_gvg_srv;
   ros::ServiceServer     select_edge_srv;
 
@@ -139,7 +139,7 @@ class GVGFollower {
   ros::Subscriber        obstacles_sub;
   ros::Subscriber        odom_sub;
   ros::Publisher         wf_pub;
-  
+
   /* Planner service client */
   ros::ServiceClient     select_bearing_cln;
 
@@ -147,10 +147,10 @@ class GVGFollower {
   ros::ServiceClient     add_meetpoint_cln;
   ros::ServiceClient     add_endpoint_cln;
   ros::ServiceClient     extend_edge_cln;
-  
+
   /* Called whenever obstacles are published from the laser_utils node */
   void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg);
-   
+
   /* Called whenever odometry is published from the robot or from stage */
   void handle_odometry(const nav_msgs::Odometry::ConstPtr& msg);
 

@@ -209,6 +209,9 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
       }
 
       if (vertex_matching_policy == 1) {
+        for (tie(vertex, vertex_end) = vertices(G); vertex != vertex_end; vertex++) {
+          cout << vertex_state(G[*vertex].node_id);
+        }
         // Confirm the correct vertex
         if (target == nullVertex() || arriving_bearing == -1) {
           ROS_WARN("No matching meetpoint found");
@@ -238,8 +241,12 @@ Vertex GVGGraph::addVertex(GVGVertex& v, double robot_angle, geometry_msgs::Pose
         }
         else target = nullVertex();
       }
-      else if (vertex_matching_policy == 2)
-      { //somewhat smart with user interface if unsure
+      else if (vertex_matching_policy == 3)
+      {
+        for (tie(vertex, vertex_end) = vertices(G); vertex != vertex_end; vertex++) {
+          cout << vertex_state(G[*vertex].node_id);
+        }
+        //somewhat smart with user interface if unsure
         //if found a new vertex, or not sure of bearing, or not sure of vertex match, ask user, otherwise, use existing values
         if(target==nullVertex() or min_error==-1 or min_error>MAX_ERROR_AUTOMATCH)
         {

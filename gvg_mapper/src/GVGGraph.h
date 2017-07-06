@@ -30,7 +30,7 @@
  * Radius of search for an existing vertex when we are trying to perform loop closure. In m.
  */
 #define SAME_VERTEX_RADIUS 0.5
-#define MAX_ERROR_AUTOMATCH .02
+#define MAX_ERROR_AUTOMATCH .001
 
 class EdgeBearing;
 
