@@ -10,16 +10,16 @@
 #include <sstream>
 
 Relocalization_Simulation::Relocalization_Simulation(double laser_offset_x, double laser_offset_y, double Wvv, double Wvw, double Www, int nL, VectorXd state, MatrixXd cov) {
-  
+
   retrieve_edges_cln = nh.serviceClient<gvg_mapper::RetrieveEdges>("/retrieve_edges");
-  
+
   this->laser_offset_x = laser_offset_x;
   this->laser_offset_y = laser_offset_y;
-  
+
   this->nL = nL;
   X = VectorXd(3*nL+3);
   P = MatrixXd::Zero(3*nL+3, 3*nL+3);
-  
+
   for(int i = 0; i < state.size(); i++) {
     X(i) = state(i);
   }
@@ -35,13 +35,13 @@ Relocalization_Simulation::Relocalization_Simulation(double laser_offset_x, doub
 
 // A* search guided by uncertainty and minimizing path length
 std::vector<int> Relocalization_Simulation::find_optimal(int source, int target, double start_shortest_distance, double alpha, double &uncertainty) {
-  
+
   std::vector<ekf_sim> paths;
-  
+
   std::set<int> open_set;
   std::set<int> closed_set;
   std::map<int, int> came_from;
-  
+
   ekf_sim init_sim(Wvv, Wvw, Www, alpha, nL, X, P, source);
   // Push the first few directions into the stack
   open_set.insert(source);
@@ -54,7 +54,7 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
    * At every step we take one path out and propagate the edge to its destination
    */
   while (!paths.empty()) {
-    
+
     ekf_sim current = paths.at(0);
     int min_index = 0;
     for (int i = 1; i < paths.size(); i++) {
@@ -63,26 +63,26 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
         min_index = i;
       }
     }
-    
+
     //ROS_INFO("Next min cost node: %d", current.current_node);
-    
+
     paths.erase(paths.begin() + min_index);
     // Maintain open/closed set
     open_set.erase(current.current_node);
     closed_set.insert(current.current_node);
-    
+
     /*ROS_INFO("Open set:" );
     for (set<int>::iterator it = open_set.begin(); it != open_set.end(); ++it) {
       cout << ' ' << *it;
     }
     cout << "\n";
-    
+
     ROS_INFO("Closed set:" );
     for (set<int>::iterator it = closed_set.begin(); it != closed_set.end(); ++it) {
       cout << ' ' << *it;
     }
     cout << "\n";*/
-    
+
     // Need to get all edges to current node of the path
     if (current.current_node == target) {
       cout << "Total distance travelled: " << current.total_distance << " | trace uncertainty: " << current.P.block(3, 3, 3*nL, 3*nL).trace() << endl;
@@ -97,14 +97,14 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
       uncertainty = current.P.block(3, 3, 3*nL, 3*nL).trace();
       return backtrace(came_from, source, target);
     }
-    
+
     gvg_mapper::RetrieveEdges edges_srv;
     edges_srv.request.node_id = current.current_node;
     if (!retrieve_edges_cln.call(edges_srv)) {
       ROS_WARN("Could not check relocalize from Mapper!");
     }
     vector<gvg_mapper::GVGEdgeMsg> current_edges = edges_srv.response.edges;
-    
+
     // Enqueue all the other directions we can go, if we have never visited those nodes
     for (int i = 0; i < current_edges.size(); i++) {
       //ROS_INFO("source %d target %d", current_edges.at(i).source, current_edges.at(i).target);
@@ -133,7 +133,7 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
       //cout << "adding node " << next_node << endl;
       ekf_sim temp(Wvv, Wvw, Www, alpha);
       temp.copy(current);
-      
+
       // Calculate how much rotation to reach the edges orientation
       double current_angle = X(2);
       double target_angle;
@@ -142,10 +142,10 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
         target_angle = traversing_edge.line.at(traversing_edge.line.size() - 1).point.z + M_PI;
         if (target_angle > M_PI) target_angle -= 2*M_PI;
       }
-      
+
       double ang_vel = 0.0;
       nh.getParam("/indoor/gvg/agent/ang_vel", ang_vel);
-      
+
       double rotation = target_angle - current_angle;
       // To rotate smallest angle, just follow the sign of rotation
       if (fabs(rotation) < M_PI) {
@@ -167,7 +167,7 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
             }
             ps.header.stamp.nsec = nsecs;
           }
-          else { 
+          else {
             ps = traversing_edge.line.at(traversing_edge.line.size() - 1);
             int timesteps = j;
             while (timesteps >= 10) {
@@ -209,7 +209,7 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
             }
             ps.header.stamp.nsec = nsecs;
           }
-          else { 
+          else {
             ps = traversing_edge.line.at(traversing_edge.line.size() - 1);
             int timesteps = j;
             while (timesteps >= 10) {
@@ -230,9 +230,9 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
           temp.propagate(ps);
         }
       }
-      
+
       // Propagate the edge for the EKF simulating that transition
-      // Find the edge that connects current node to previous node so we can simulate 
+      // Find the edge that connects current node to previous node so we can simulate
       if (forward) {
         for (int j = 0; j < traversing_edge.line.size(); j++) {
           temp.propagate(traversing_edge.line.at(j));
@@ -248,7 +248,7 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
           temp.propagate(ps);
         }
       }
-      
+
       geometry_msgs::Point32 pl;
       pl.x = temp.X(3*next_node + 3);
       pl.y = temp.X(3*next_node + 4);
@@ -256,7 +256,7 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
       measurement.x = this->laser_offset_x;
       measurement.y = this->laser_offset_y;
       temp.update(next_node, pl, measurement);
-      
+
       // 2 cases: not in open_set or in open set. If in open set, need to check if current path to that node is quicker than previous path
       // Find if it is in open set
       bool within_open = true;
@@ -291,9 +291,9 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
             break;
           }
         }
-        
+
         temp.total_distance += traversing_edge.length;
-        
+
         // Remove old path because it has higher cost than new path to the same node
         if (temp.computeCost(target) < paths.at(index).computeCost(target)) {
           paths.erase(paths.begin() + index);
@@ -322,7 +322,7 @@ std::vector<int> Relocalization_Simulation::find_optimal(int source, int target,
     }
   }
 }
- 
+
 std::vector<int> Relocalization_Simulation::backtrace(std::map<int, int> map, int source, int target) {
   std::vector<int> result;
   int current = target;
@@ -346,7 +346,7 @@ Planner::Planner() {
   this->min_uncertainty_cln = nh.serviceClient<localizer::MinUncertainty>("/indoor/gvg/MinUncertainty");
   this->max_uncertainty_cln = nh.serviceClient<localizer::MaxUncertainty>("/indoor/gvg/MaxUncertainty");
   this->map_sub = nh.subscribe("/indoor/gvg/theMap", 1, &Planner::handleMap, this);
-  
+
   frontier_min_uncertainty_exploration = false;
   nh.getParam("/gvg_planner/frontier_min_uncertainty_exploration", frontier_min_uncertainty_exploration);
   nh.getParam("/gvg_planner/random_reloc_target", random_reloc_target);
@@ -385,10 +385,10 @@ void Planner::handleMap(const localizer::GVGmap& map) {
  * If the meetpoint has all visited edges, retrieve path plan from Mapper to return to previous meetpoint with unexplored edges.
  */
 bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_planner::SelectBearing::Response& res) {
-        
+
   // Exploration state
   if (state == 0) {
-    
+
     /* Check relocalize */
     gvg_mapper::CheckRelocalize relocalize_srv;
     if (!check_relocalize_cln.call(relocalize_srv)) {
@@ -396,8 +396,8 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       res.success = false;
       return true;
     }
-    
-    
+
+
     if (frontier_min_uncertainty_exploration && goto_min_frontier && nL > 1) {
       goto_min_frontier = false;
       // Before running retrieve Bearings and checking which direction to go next from current node, run heuristic search
@@ -408,27 +408,27 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       nh.getParam("/indoor/gvg/localizerGVGNode/Wvv", Wvv);
       nh.getParam("/indoor/gvg/localizerGVGNode/Www", Www);
       nh.getParam("/indoor/gvg/localizerGVGNode/Wvw", Wvw);
-      
+
       double laser_offset_x = 0.0;
       double laser_offset_y = 0.0;
       nh.getParam("/gvg_mapper/laser_distance_x", laser_offset_x);
       nh.getParam("/gvg_mapper/laser_distance_y", laser_offset_y);
-      
+
       ROS_WARN("Current trace uncertainty: %f", P.block(3, 3, 3*nL, 3*nL).trace());
-      
+
       Relocalization_Simulation reloc_sim(laser_offset_x, laser_offset_y, Wvv, Wvw, Www, nL, X, P);
-      
+
       // Run this code to print out the heuristic search output to all nodes in map
-      
+
       // Use relocalization sim to find path to min uncertainty node
       double min_uncertainty = INFINITY;
-      
+
       double alpha = 0.0;
       nh.getParam("/gvg_planner/Astar_weight", alpha);
-      
+
       for (int j = 0; j < nL; j++) {
         if (req.node_id != j) {
-          
+
           double start_shortest_distance = INFINITY;
           gvg_mapper::RetrievePath pathsrv;
           pathsrv.request.source = req.node_id;
@@ -451,17 +451,17 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
           }
         }
       }
-      
+
       ROS_WARN("Final min uncertainty: %f", min_uncertainty);
       cout << "Output path from heuristic search: ";
       for (int i = vertex_list.size() - 1; i >= 0; i--) {
         if (i != 0) std::cout << vertex_list.at(i) << " -> ";
         else std::cout << vertex_list.at(i) << std::endl;
       }
-      
+
       if (vertex_list.size() > 0) {
         this->state = 1;
-          
+
         target = vertex_list.back();
         vertex_list.pop_back();
 
@@ -479,16 +479,16 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         ROS_INFO("Requested direction from GVG Follower: %.2f", chosen_bearing * 180.0/M_PI);
         res.selected_bearing = chosen_bearing;
 
-        res.success = true; 
+        res.success = true;
         if (vertex_list.size() == 0) this->state = 0;
         return true;
       }
     }
-    
+
     goto_min_frontier = true;
-    
-    
-    
+
+
+
     /* Retrieve available bearings from gvg_mapper */
     gvg_mapper::RetrieveBearings srv;
     srv.request.node_id = req.node_id;
@@ -498,9 +498,9 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       res.success = false;
       return true;
     }
-    
+
     // Relocalize, pathplan to node with MIN uncertainty
-    if (relocalize_srv.response.relocalize == 1) {      
+    if (relocalize_srv.response.relocalize == 1) {
       ROS_INFO("Robot uncertainty too large. Path planning to minimum uncertainty vertex.");
       localizer::MinUncertainty minsrv;
       if (!min_uncertainty_cln.call(minsrv)) {
@@ -516,10 +516,10 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         res.success = false;
         return true;
       }
-      
+
       vertex_list = pathsrv.response.vertex_list;
       this->state = 1;
-      
+
       target = vertex_list.back();
       vertex_list.pop_back();
 
@@ -533,19 +533,19 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         return true;
       }
       double chosen_bearing = srv.response.chosen_bearing;
-      
+
       ROS_INFO("Requested direction from GVG Follower: %.2f", chosen_bearing * 180.0/M_PI);
       res.selected_bearing = chosen_bearing;
 
-      res.success = true; 
+      res.success = true;
       if (vertex_list.size() == 0) this->state = 0;
       return true;
     }
-    
+
     // Random relocalization, path plan to MIN uncertainty vertex
     if (relocalize_srv.response.relocalize == 2) {
       ROS_INFO("Random relocalization. Path planning to minimum uncertainty vertex.");
-      
+
       // The model noise covariance (linear and angular velocity) defined in localizer launch files
       double Wvv = 0.0;
       double Www = 0.0;
@@ -553,26 +553,26 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       nh.getParam("/indoor/gvg/localizerGVGNode/Wvv", Wvv);
       nh.getParam("/indoor/gvg/localizerGVGNode/Www", Www);
       nh.getParam("/indoor/gvg/localizerGVGNode/Wvw", Wvw);
-      
+
       double laser_offset_x = 0.0;
       double laser_offset_y = 0.0;
       nh.getParam("/gvg_mapper/laser_distance_x", laser_offset_x);
       nh.getParam("/gvg_mapper/laser_distance_y", laser_offset_y);
-      
-      
+
+
       Relocalization_Simulation reloc_sim(laser_offset_x, laser_offset_y, Wvv, Wvw, Www, nL, X, P);
-      
+
       // Run this code to print out the heuristic search output to all nodes in map
-      
+
       // Use relocalization sim to find path to min uncertainty node
       double min_uncertainty = INFINITY;
-      
+
       double alpha = 0.0;
       nh.getParam("/gvg_planner/Astar_weight", alpha);
-      
+
       for (int j = 0; j < nL; j++) {
         if (req.node_id != j) {
-          
+
           double start_shortest_distance = INFINITY;
           gvg_mapper::RetrievePath pathsrv;
           pathsrv.request.source = req.node_id;
@@ -583,7 +583,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
           else {
             start_shortest_distance = pathsrv.response.distance;
           }
-          
+
           ROS_INFO("Running heuristic search from %d to %d", req.node_id, j);
           double uncertainty = 0.0;
           vector<int> temp_path = reloc_sim.find_optimal(req.node_id, j, start_shortest_distance, alpha, uncertainty);
@@ -592,7 +592,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
             ROS_ERROR("temp_path empty, could not find correct path, skipping relocalization");
             res.success=false;
             return false;
-          } 
+          }
 
           if (uncertainty < min_uncertainty) {
             vertex_list.assign(temp_path.begin(), temp_path.end());
@@ -600,15 +600,15 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
           }
         }
       }
-      
+
       ROS_WARN("Final min uncertainty: %f", min_uncertainty);
       cout << "Output path from heuristic search: ";
       for (int i = vertex_list.size() - 1; i >= 0; i--) {
         if (i != 0) std::cout << vertex_list.at(i) << " -> ";
         else std::cout << vertex_list.at(i) << std::endl;
       }
-      
-      
+
+
       /*
       localizer::MinUncertainty minsrv;
       if (!min_uncertainty_cln.call(minsrv)) {
@@ -616,7 +616,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         res.success = false;
         return true;
       }
-      
+
       gvg_mapper::RetrievePath pathsrv;
       pathsrv.request.source = req.node_id;
       pathsrv.request.target = minsrv.response.id;
@@ -625,10 +625,10 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         res.success = false;
         return true;
       }
-      
+
       vertex_list = pathsrv.response.vertex_list;*/
       this->state = 1;
-      
+
       target = vertex_list.back();
       vertex_list.pop_back();
 
@@ -646,7 +646,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       ROS_INFO("Requested direction from GVG Follower: %.2f", chosen_bearing * 180.0/M_PI);
       res.selected_bearing = chosen_bearing;
 
-      res.success = true; 
+      res.success = true;
       if (vertex_list.size() == 0) this->state = 0;
       return true;
     }
@@ -658,7 +658,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       ROS_INFO("Requested direction from GVG Follower: %.2f", chosen_bearing * 180.0/M_PI);
       res.selected_bearing = chosen_bearing;
 
-      res.success = true; 
+      res.success = true;
       return true;
     }
     // Explored all edges at this vertex, path plan to previously nonexplored edges vertex.
@@ -682,8 +682,8 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
           getline(cin, str);
           stringstream stream(str);
           int target;
-          stream >> target;        
-          
+          stream >> target;
+
           pathsrv.request.source = req.node_id;
           pathsrv.request.target = target;
           if (!retrieve_path_cln.call(pathsrv)) {
@@ -701,9 +701,9 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         }*/
         ROS_WARN("Entire map has been explored. Relocalizing...");
         ROS_WARN("Current trace of covariance: %.2f", P.block(3, 3, 3*nL, 3*nL).trace());
-        
+
         int target_node;
-        
+
         if (random_reloc_target) {
           target_node = req.node_id;
           while (target_node == req.node_id) {
@@ -728,7 +728,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
             target_node = minsrv.response.id;
           }
         }
-        
+
         // The model noise covariance (linear and angular velocity) defined in localizer launch files
         double Wvv = 0.0;
         double Www = 0.0;
@@ -736,26 +736,26 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         nh.getParam("/indoor/gvg/localizerGVGNode/Wvv", Wvv);
         nh.getParam("/indoor/gvg/localizerGVGNode/Www", Www);
         nh.getParam("/indoor/gvg/localizerGVGNode/Wvw", Wvw);
-        
+
         double laser_offset_x = 0.0;
         double laser_offset_y = 0.0;
         nh.getParam("/gvg_mapper/laser_distance_x", laser_offset_x);
         nh.getParam("/gvg_mapper/laser_distance_y", laser_offset_y);
-        
-        
+
+
         Relocalization_Simulation reloc_sim(laser_offset_x, laser_offset_y, Wvv, Wvw, Www, nL, X, P);
-        
+
         // Run this code to print out the heuristic search output to all nodes in map
-        
+
         // Use relocalization sim to find path to min uncertainty node
         double min_uncertainty = INFINITY;
-        
+
         double alpha = 0.0;
         nh.getParam("/gvg_planner/Astar_weight", alpha);
-        
+
         for (int j = 0; j < nL; j++) {
           if (req.node_id != j) {
-            
+
             double start_shortest_distance = INFINITY;
             pathsrv.request.source = req.node_id;
             pathsrv.request.target = j;
@@ -765,7 +765,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
             else {
               start_shortest_distance = pathsrv.response.distance;
             }
-            
+
             ROS_INFO("Running heuristic search from %d to %d", req.node_id, j);
             double uncertainty = 0.0;
             vector<int> temp_path = reloc_sim.find_optimal(req.node_id, j, start_shortest_distance, alpha, uncertainty);
@@ -775,7 +775,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
             }
           }
         }
-        
+
         ROS_WARN("Final min uncertainty: %f", min_uncertainty);
         cout << "Output path from heuristic search: ";
         for (int i = vertex_list.size() - 1; i >= 0; i--) {
@@ -793,10 +793,10 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         else {
           start_shortest_distance = pathsrv.response.distance;
         }
-        
+
         double alpha = 0.0;
         nh.getParam("/gvg_planner/Astar_weight", alpha);
-        
+
         ROS_INFO("Running heuristic search from %d to %d", req.node_id, target_node);
         vertex_list = reloc_sim.find_optimal(req.node_id, target_node, start_shortest_distance, alpha);
         cout << "Output path from heuristic search: ";
@@ -804,9 +804,9 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
           if (i != 0) std::cout << vertex_list.at(i) << " -> ";
           else std::cout << vertex_list.at(i) << std::endl;
         }*/
-        
-        
-        /*STOP AFTER A FEW ITERATIONS I SUPPOSE 
+
+
+        /*STOP AFTER A FEW ITERATIONS I SUPPOSE
          * nh.setParam("/indoor/gvg/agent/do_move", false);
         res.success = true;
         return true;*/
@@ -821,7 +821,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
         }
       }
       this->state = 1;
-      
+
       target = vertex_list.back();
       vertex_list.pop_back();
 
@@ -839,11 +839,11 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       ROS_INFO("Requested direction from GVG Follower: %.2f", chosen_bearing * 180.0/M_PI);
       res.selected_bearing = chosen_bearing;
 
-      res.success = true; 
+      res.success = true;
       if (vertex_list.size() == 0) this->state = 0;
       return true;
     }
-  
+
   // Pathplanning state
   } else {
     if (target != req.node_id) {
@@ -857,7 +857,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       }
       vertex_list = pathsrv.response.vertex_list;
       this->state = 1;
-      
+
       target = vertex_list.back();
       vertex_list.pop_back();
 
@@ -875,7 +875,7 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
       ROS_INFO("Requested direction from GVG Follower: %.2f", chosen_bearing * 180.0/M_PI);
       res.selected_bearing = chosen_bearing;
 
-      res.success = true; 
+      res.success = true;
       if (vertex_list.size() == 0) this->state = 0;
       return true;
     }
@@ -896,8 +896,8 @@ bool Planner::SelectBearingGVG(gvg_planner::SelectBearing::Request& req, gvg_pla
     ROS_INFO("Requested direction from GVG Follower: %.2f", chosen_bearing * 180.0/M_PI);
     res.selected_bearing = chosen_bearing;
 
-    res.success = true; 
+    res.success = true;
     if (vertex_list.size() == 0) this->state = 0;
-    return true;  
+    return true;
   }
 }

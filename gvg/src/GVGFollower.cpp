@@ -283,7 +283,7 @@ void GVGFollower::InstantaneousFollowEdge(laser_node::Obstacles& msg, bool do_mo
     robot_node::Follow_Wall fw;
     fw.dy_in_m = dy;
     fw.dtheta_in_rad = dtheta_rad;
-    fw.lin_vel = (closeToMeetpoint && lastMeetpointWasALongTimeAgo) ? lin_vel/3.0 : lin_vel;
+    fw.lin_vel = (closeToMeetpoint && lastMeetpointWasALongTimeAgo) ? lin_vel/MEETPOINT_SPEED_SCALAR : lin_vel;
     fw.theta_of_closest_point = msg.collection.at(0).min_bearing;
     fw.range_of_closest_point = msg.collection.at(0).min_distance;
     wf_pub.publish(fw);
@@ -950,7 +950,7 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
         double ang_vel;
         nh.getParam("/indoor/gvg/agent/ang_vel", ang_vel);
         obs_mutex.unlock();
-        NavigateToMeetpoint(goal->lin_vel/3, ang_vel);
+        NavigateToMeetpoint(goal->lin_vel/MEETPOINT_SPEED_SCALAR, ang_vel);
       }
       else {
         // if the robot is moved manually then follow edge will not terminate
