@@ -1,0 +1,11 @@
+<launch>
+  <remap from="/odom" to="/indoor/gvg/odom_combined"/>
+  <node name="remapper" pkg="remapper" type="remapper" output="screen" args=" ">
+    <param name="reverse_laser" value="false" type="bool" />
+
+  </node>
+
+  <include file="$(find robot_node)/launch/turtlebot.launch" />
+  <include file="$(find laser_node)/launch/laser_utils_hokuyo.launch" />
+  <include file="$(find turtlebot_teleop)/launch/logitech.launch" />
+</launch>
