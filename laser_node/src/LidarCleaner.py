@@ -6,12 +6,11 @@ from sensor_msgs.msg import LaserScan
 
 class LidarCleaner():
     def laser_call(self,msg):
-        checkList=msg.ranges
         L = list(msg.ranges)
 
-        for i in range(10,len(checkList)-20):
+        for i in range(10,len(msg.ranges)-20):
             if(L[i]<1.5):
-                L[i]=max((u if u < 1.5 else 0) for u in checkList[i-10:i+10])
+                L[i]=max([(msg.ranges[u] if msg.ranges[u] < 1.5 else 0) for u in range(i-10,i+10)])
         msg.ranges=L
         self.pub.publish(msg)
 
