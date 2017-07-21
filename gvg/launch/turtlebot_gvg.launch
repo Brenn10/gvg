@@ -14,10 +14,7 @@
   <include file="$(find gvg_mapper)/launch/turtlebot_viz.launch" />
   <include file="$(find laser_node)/launch/turtlebot_viz.launch" />
 
-  <node ns="indoor/gvg/" name="gvg_follower" pkg="gvg" type="gvg_follower"  output="screen" args=" ">
-  </node>
-
-  <!--<node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen"  args="-d $(find laser_node)/turtlebot.rviz"/>-->
+  <node ns="indoor/gvg/" name="gvg_follower" pkg="gvg" type="gvg_follower"  output="screen" args=" " />
 
   <node ns="indoor/gvg/" name="agent" pkg="gvg" type="agent"  output="screen" args=" ">
     <param name="meetpoint_threshold" value="0.20" type="double" />
@@ -26,5 +23,5 @@
     <param name="ang_vel" value="0.345" type="double" />
   </node>
 
-  <node ns="/indoor/gvg/" pkg="gvg" name="clean_odom" type="rviz_odom_cleaner.py" output="screen" />
+
 </launch>

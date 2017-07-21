@@ -17,19 +17,19 @@ class LaserUtils {
  public:
   LaserUtils(std::string& robot_name);
 
-  void   handleLaserScan(const sensor_msgs::LaserScan::ConstPtr& msg); 
-    
-  void   getClosestObstaclesViaAnnulus(laser_node::Obstacles& annulus_obstacles, double epsilon, 
+  void   handleLaserScan(const sensor_msgs::LaserScan::ConstPtr& msg);
+
+  void   getClosestObstaclesViaAnnulus(laser_node::Obstacles& annulus_obstacles, double epsilon,
 				       const sensor_msgs::LaserScan::ConstPtr& msg);
  private:
-  double getRange(const sensor_msgs::LaserScan::ConstPtr& msg, int i); 
-  double getBearing(const sensor_msgs::LaserScan::ConstPtr& msg, int i); 
+  double getRange(const sensor_msgs::LaserScan::ConstPtr& msg, int i);
+  double getBearing(const sensor_msgs::LaserScan::ConstPtr& msg, int i);
   geometry_msgs::Point32 toPoint32(const sensor_msgs::LaserScan::ConstPtr& msg, int i);
-  
-  void   populate_window_around_object(int index, 
-				       std::vector<geometry_msgs::Point32>& window_before, 
-				       std::vector<geometry_msgs::Point32>& window_after, 
-				       int size, double& min_distance, std::vector<int>& except, 
+
+  void   populate_window_around_object(int index,
+				       std::vector<geometry_msgs::Point32>& window_before,
+				       std::vector<geometry_msgs::Point32>& window_after,
+				       int size, double& min_distance, std::vector<int>& except,
 				       const sensor_msgs::LaserScan::ConstPtr& msg,
 				       bool full_size_window=false);
 
@@ -40,6 +40,8 @@ class LaserUtils {
   int                 countScans;
   double              ROBOT_DIAM;
   double              LASER_MAX_RANGE;
+  double              ANNULUS_EPSILON;
+  bool                DO_CLEAN_LIDAR;
 };
 
 #endif

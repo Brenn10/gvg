@@ -17,7 +17,7 @@
 
 robotSim::robotSim(std::string& name, int id) {
   this->id = id;
-  
+
   double dy_kp; double dy_ki; double dy_kd; double dy_signal;
   double ang_vel_kp; double ang_vel_ki; double ang_vel_kd; double ang_vel_signal;
 
@@ -31,7 +31,7 @@ robotSim::robotSim(std::string& name, int id) {
   nh.getParam("/" + name + "/ang_vel_kd", ang_vel_kd);
   nh.getParam("/" + name + "/ang_vel_signal", ang_vel_signal);
 
-  
+
   dy_control = new PIDController(dy_signal, dy_kp, dy_kd, dy_ki);
   ang_vel_control = new PIDController(ang_vel_signal, ang_vel_kp, ang_vel_kd, ang_vel_ki);
 
@@ -50,8 +50,8 @@ robotSim::~robotSim() {
   this->brakeSrv.shutdown();
 }
 
-/* Motion command: tVel, the translational velocity is in m/sec 
-   and aVel, the angular velocity is in rad/sec */ 
+/* Motion command: tVel, the translational velocity is in m/sec
+   and aVel, the angular velocity is in rad/sec */
 void robotSim::move(double tVel, double aVel) {
   geometry_msgs::Twist msg;
   msg.linear.x = tVel;
@@ -66,7 +66,7 @@ void robotSim::move(double tVel, double aVel) {
 /* Accepts dy, dtheta as errors and drives the robot to a direction
    that will minimize those errors */
 void robotSim::follow_wall(const robot_node::Follow_Wall::ConstPtr& msg) {
-  
+
   static int innerLoop = 0;
   int N = 2;
   if (innerLoop % N == 0) { // execute the outer loop in the cascading control
@@ -76,16 +76,16 @@ void robotSim::follow_wall(const robot_node::Follow_Wall::ConstPtr& msg) {
   }
   this->move(msg->lin_vel, ang_vel_control->signal);
   innerLoop = (innerLoop + 1) % N;
-  
-}  
+
+}
 
 /* Move forward by dx_in_m meters */
-bool robotSim::relTranslate(robot_node::RelTranslate::Request& req, 
+bool robotSim::relTranslate(robot_node::RelTranslate::Request& req,
 			      robot_node::RelTranslate::Response& res) {
-  
+
   geometry_msgs::Point before = odom.pose.pose.position;
   geometry_msgs::Point after = odom.pose.pose.position;
-   ros::Rate loop_rate(10); 
+   ros::Rate loop_rate(10);
   while (distance(before, after) < req.dx_in_m) {
     move(req.lin_speed, 0.0);
     ros::spinOnce();
@@ -98,7 +98,7 @@ bool robotSim::relTranslate(robot_node::RelTranslate::Request& req,
 }
 
 /* TODO: bug fix, relrotate can only handle < 90 degree turns. Also ang velocity should be recalculated depending on the angle */
-bool robotSim::relRotate(robot_node::RelRotate::Request& req, 
+bool robotSim::relRotate(robot_node::RelRotate::Request& req,
 			   robot_node::RelRotate::Response& res) {
 
   double ang_vel = req.dtheta_rad >= 0 ? std::abs(req.ang_speed) : (-std::abs(req.ang_speed));
@@ -122,12 +122,12 @@ bool robotSim::stop(robot_node::Brake::Request& req,
   res.success = true;
   return true;
 }
-  
+
 /* Reads up the odometry of the robot from Stage  */
 void robotSim::handleOdometry(const nav_msgs::Odometry::ConstPtr& msg) {
   this->odom = *msg;
 }
-  
+
 double robotSim::distance(geometry_msgs::Point& a, geometry_msgs::Point& b) {
   double distSqr = (a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y);
   return sqrt(distSqr);

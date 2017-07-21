@@ -25,16 +25,16 @@ int main( int argc, char** argv ) {
   ros::spin();
   return 0;
 }
- 
+
 void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fbk) {
   gvg::FollowEdgeFeedback msg = fbk->feedback;
   std::string ns = "follow_edge_inputs";
   std::string frame_id = "/base_laser_link";
-  
+
   laser_node::Obstacles obstacles;
   obstacles.collection.push_back(msg.left);
   obstacles.collection.push_back(msg.right);
-  
+
   //ROS_INFO("dy %f", msg.dy);
   //ROS_INFO("dtheta_deg %f", msg.dtheta_in_deg);
 
@@ -50,8 +50,8 @@ void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fb
     m.id = i;
     m.type = visualization_msgs::Marker::LINE_STRIP;
     m.action = visualization_msgs::Marker::ADD;
-    m.scale.x = 0.03;  
-    
+    m.scale.x = 0.03;
+
     if (i % 2 == 0) {
       m.color.a = 1.0;   m.color.r = 0.0;   m.color.g = 1.0;  m.color.b = 0.0;
     } else {
@@ -65,12 +65,12 @@ void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fb
       pt.y = obstacles.collection.at(i).surface.at(j).y;
       pts.push_back(pt);
     }
-    
+
     m.points.assign(pts.begin(), pts.end());
     m.lifetime = ros::Duration(1.0/15.0);   //1/15th of a second
     ma.markers.push_back(m);
   }
-  
+
   /*
    * Populating lines from the robot to the closest points of obstacles
    */
@@ -83,8 +83,8 @@ void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fb
     m.id = i + (int) obstacles.collection.size();
     m.type = visualization_msgs::Marker::LINE_STRIP;
     m.action = visualization_msgs::Marker::ADD;
-    m.scale.x = 0.01;  
-    
+    m.scale.x = 0.01;
+
     if (i % 2 == 0) {
       m.color.a = 1.0;   m.color.r = 0.0;   m.color.g = 1.0;  m.color.b = 0.0;
     } else {
@@ -93,7 +93,7 @@ void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fb
 
     geometry_msgs::Point origin;
     origin.x = 0; origin.y = 0;
-    
+
     geometry_msgs::Point closest_pt;
     closest_pt.x = obstacles.collection.at(i).closest_point.x;
     closest_pt.y = obstacles.collection.at(i).closest_point.y;
@@ -115,7 +115,7 @@ void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fb
     m.id = i + (int) 2*obstacles.collection.size();
     m.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
     m.action = visualization_msgs::Marker::ADD;
-    m.scale.z = 0.4;  
+    m.scale.z = 0.4;
     m.text = (i == 0) ? "left" : "right";
     m.lifetime = ma.markers.at(i).lifetime;
     m.color = ma.markers.at(i).color;
@@ -133,10 +133,10 @@ void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fb
   m.id = 1 + (int) 3*obstacles.collection.size();
   m.type = visualization_msgs::Marker::LINE_LIST;
   m.action = visualization_msgs::Marker::ADD;
-  m.scale.x = 0.01;  
+  m.scale.x = 0.01;
   m.lifetime = ros::Duration(1.0/15.0);    //1/15th of a second
   m.color.a = 1.0;   m.color.r = 1.0;   m.color.g = 0.0;  m.color.b = 0.0;
-  
+
   geometry_msgs::Point leftp;
   leftp.x = msg.left.closest_point.x; leftp.y = msg.left.closest_point.y;
 
@@ -144,12 +144,12 @@ void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fb
   rightp.x = msg.right.closest_point.x; rightp.y = msg.right.closest_point.y;
 
   geometry_msgs::Point startp;
-  startp.x = msg.midpoint.x - 0.5*msg.normal.x; 
+  startp.x = msg.midpoint.x - 0.5*msg.normal.x;
   startp.y = msg.midpoint.y - 0.5*msg.normal.y;
 
   geometry_msgs::Point endp;
-  endp.x = msg.midpoint.x + msg.normal.x; 
-  endp.y = msg.midpoint.y + msg.normal.y; 
+  endp.x = msg.midpoint.x + msg.normal.x;
+  endp.y = msg.midpoint.y + msg.normal.y;
 
   m.points.push_back(leftp);
   m.points.push_back(rightp);
@@ -161,4 +161,3 @@ void handle_follow_edge_feedback(const gvg::FollowEdgeActionFeedbackConstPtr& fb
   obstacle_names_pub.publish(ma_names);
   gvg_line_pub.publish(m);
 }
-

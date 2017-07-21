@@ -1,7 +1,8 @@
 <launch>
-	<node ns="indoor/laser_utils" pkg="laser_node" type="laserUtilsServer" name="laser_utils_server" output="screen" 
+	<node ns="indoor/laser_utils" pkg="laser_node" type="laserUtilsServer" name="laser_utils_server" output="screen"
 	      launch-prefix=" " args=" ">
 	      <param name="robot_diam" value="0.7" type="double"/>
         <param name="laser_max_range" value="15" type="double"/>
+				<param name="clean_lidar" value="false" type="boolean"/>
      	</node>
 </launch>

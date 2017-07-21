@@ -94,7 +94,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   laser_node::Obstacle forward_closest = obstacles.collection.at(i);
   unsigned int old_seq = obstacles.seq;
   obs_mutex.unlock();
-
+  ros::Duration(0.5).sleep();
   // Step 2: Turn 180 to see if there is an obstacle that is
   // closer to the one you found previously
   robot_node::RelRotate srv;
@@ -130,7 +130,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
   old_seq = obstacles.seq;
   obs_mutex.unlock();
 
-
+  ros::Duration(0.5).sleep();
   // Step 3: now that you found the closest obstacle around a 360 view,
   // turn to the exact opposite direction of the closest point on that obstacle.
   robot_node::RelRotate srv2;
@@ -184,7 +184,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     res.success = -6;
     return true;
   }
-
+  ros::Duration(0.5).sleep();
   // Step 4: Turn towards the middle of the closest point and the opposite obstacle point
   geometry_msgs::Point32 middle;
   middle.x = (closest_opposite_point.x - closest.min_distance)/2.0;
@@ -198,7 +198,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     res.success = -7;
     return true;
   }
-
+  ros::Duration(0.5).sleep();
   // Step 5: move towards the middle of the closest obstacle that you found in
   // step 2 and its opposite obstacle, found in step 3.
 
@@ -210,7 +210,7 @@ bool GVGFollower::AccessGVG(gvg::Access::Request& req, gvg::Access::Response& re
     res.success = -8;
     return true;
   }
-
+  ros::Duration(0.5).sleep();
   // Step 6: turn 90 so that you are aligned with the tangent to the closest point
   robot_node::RelRotate srv5;
   srv5.request.dtheta_rad = -M_PI/2.0;
@@ -316,12 +316,6 @@ void GVGFollower::InstantaneousFollowEdge(laser_node::Obstacles& msg, bool do_mo
  * We take another scan to confirm the location of the new meetpoint. If it is the same as the old meetpoint and we are within the threshold, we are on the meetpoint.
  */
 void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
-
-  robot_node::Brake srv;
-  srv.request.brake = true;
-  if (!brake_cln.call(srv)) {
-    ROS_WARN("Could not brake the robot!");
-  }
 
   ros::Rate r(10);
   while (!obstacles_read) {
@@ -438,6 +432,11 @@ void GVGFollower::NavigateToMeetpoint(double lin_vel, double ang_vel) {
         }
       }
     }
+ robot_node::Brake srv;
+  srv.request.brake = true;
+  if (!brake_cln.call(srv)) {
+    ROS_WARN("Could not brake the robot!");
+  }
 
     // Abort navigation
     if (!obstacle_clearance) {
@@ -946,6 +945,8 @@ void GVGFollower::handle_follow_edge_goal(const gvg::FollowEdgeGoalConstPtr& goa
 
       // Stop following GVG and navigate locally to current closest meetpoint
       if (do_move && closest_obstacles.size() >= 3) {
+        robot_node::Brake srv;
+        brake_cln.call(srv);
         ROS_INFO("Close to Meetpoint: starting navigation to meetpoint");
         double ang_vel;
         nh.getParam("/indoor/gvg/agent/ang_vel", ang_vel);

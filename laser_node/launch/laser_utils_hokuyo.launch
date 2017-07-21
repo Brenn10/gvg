@@ -2,12 +2,14 @@
 	<node name="hokuyo" pkg="urg_node" type="urg_node" >
 		<param name="ip_address" value="192.168.1.20"/>
 		<param name="frame_id" value="base_link" />
-		<!--<remap from="/scan" to="/indoor/base_scan" />-->
+		<remap from="/scan" to="/indoor/base_scan" />
 	</node>
 
-	<node name="lidar_cleaner" pkg="laser_node" type="LidarCleaner.py" />
+	<!--<node name="lidar_cleaner" pkg="laser_node" type="LidarCleaner.py" />-->
 	<node ns="indoor/laser_utils" pkg="laser_node" type="laserUtilsServer" name="laser_utils_server" output="screen" launch-prefix=" " args=" ">
 		<param name="robot_diam" value="0.5" type="double"/>
 	    <param name="laser_max_range" value="15" type="double"/>
+			<param name="clean_lidar" value="true" type="boolean"/>
+			<param name="annulus_epsilon" value="2" type="double" />
 	</node>
 </launch>

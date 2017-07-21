@@ -35,7 +35,7 @@ int main( int argc, char** argv ) {
 void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
   std::string ns = "closest_obstacles";
   visualization_msgs::MarkerArray ma;
-  
+
   /*
    * Populating obstacles
    */
@@ -47,13 +47,9 @@ void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
     m.id = i;
     m.type = visualization_msgs::Marker::LINE_STRIP;
     m.action = visualization_msgs::Marker::ADD;
-    m.scale.x = 0.03;  
-    
-    if (i % 2 == 0) {
-      m.color.a = 1.0;   m.color.r = 0.0;   m.color.g = 1.0;  m.color.b = 0.0;
-    } else {
-      m.color.a = 1.0;   m.color.r = 0.0;   m.color.g = 0.0;  m.color.b = 1.0;
-    }
+    m.scale.x = 0.03;
+
+    m.color.a = 1;   m.color.r = (i/2)%2;   m.color.g = ((i+1)/2)%2;  m.color.b = (i/3)%2;
 
     std::vector<geometry_msgs::Point> pts;
     for (int j = 0; j < (int) msg->collection.at(i).surface.size(); j++) {
@@ -62,18 +58,18 @@ void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
       pt.y = msg->collection.at(i).surface.at(j).y;
       pts.push_back(pt);
     }
-    
+
     m.points.assign(pts.begin(), pts.end());
     m.lifetime = ros::Duration(1.0/15.0);   //1/15th of a second
     ma.markers.push_back(m);
  }
-  
+
   /*
    * Display the bisectors for all pairs of obstacles
    */
   visualization_msgs::MarkerArray bisectors;
   // sort the obstacles by their min_bearing
-  std::vector<double> bearings;   
+  std::vector<double> bearings;
   for (int i = 0; i < (int) msg->collection.size(); i++) {
     bearings.push_back(msg->collection.at(i).min_bearing);
   }
@@ -94,11 +90,11 @@ void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
     double dx = msg->collection.at(first).closest_point.x - msg->collection.at(second).closest_point.x;
     double dy = msg->collection.at(first).closest_point.y - msg->collection.at(second).closest_point.y;
 
-    geometry_msgs::Point origin; 
+    geometry_msgs::Point origin;
     origin.x = 0;
     origin.y = 0;
-    
-    geometry_msgs::Point p; 
+
+    geometry_msgs::Point p;
     p.x = msg->collection.at(second).closest_point.x + (1.0/(ratio + 1.0))*dx;
     p.y = msg->collection.at(second).closest_point.y + (1.0/(ratio + 1.0))*dy;
 
@@ -111,7 +107,7 @@ void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
     m.action = visualization_msgs::Marker::ADD;
     m.scale.x = 0.03;
     m.lifetime = ros::Duration(1.0/15.0);
-    
+
     m.color.a = 1.0;   m.color.r = 1.0;   m.color.g = 0.0;  m.color.b = 1.0;
 
     m.points.push_back(origin);
@@ -129,7 +125,7 @@ void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
   m_centroid.id = 0;
   m_centroid.type = visualization_msgs::Marker::POINTS;
   m_centroid.action = visualization_msgs::Marker::ADD;
-  m_centroid.scale.x = 0.06; m_centroid.scale.y = 0.06;   
+  m_centroid.scale.x = 0.06; m_centroid.scale.y = 0.06;
   m_centroid.lifetime = ros::Duration(1.0/15.0);
 
   m_centroid.color.a = 1.0;   m_centroid.color.r = 1.0;   m_centroid.color.g = 1.0;  m_centroid.color.b = 1.0;
@@ -184,18 +180,18 @@ void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
   m.id = 0;
   m.type = visualization_msgs::Marker::POINTS;
   m.action = visualization_msgs::Marker::ADD;
-  m.scale.x = 0.06; m.scale.y = 0.06;   
+  m.scale.x = 0.06; m.scale.y = 0.06;
   m.lifetime = ros::Duration(1.0/15.0);
 
   m.color.a = 1.0;   m.color.r = 0.0;   m.color.g = 1.0;  m.color.b = 1.0;
 
   for (int i = 0; i < (int) msg->collection.size(); i++) {
-    geometry_msgs::Point p; 
+    geometry_msgs::Point p;
     p.x = msg->collection.at(i).closest_point.x;
     p.y = msg->collection.at(i).closest_point.y;
     p.z = msg->collection.at(i).closest_point.z;
-    m.points.push_back(p); 
-  }  
+    m.points.push_back(p);
+  }
 
   obstacles_closest_points_pub.publish(m);
   obstacles_pub.publish(ma);
@@ -203,4 +199,3 @@ void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
   bisectors_pub.publish(bisectors);
   centroid_pub.publish(m_centroid);
 }
-

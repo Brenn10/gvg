@@ -27,9 +27,9 @@
   <!--<node name="rviz" pkg="rviz" type="rviz" respawn="false" output="screen"  args="-d $(find laser_node)/turtlebot.rviz"/>-->
 
   <node ns="indoor/gvg/" name="agent" pkg="gvg" type="agent"  output="screen" args=" ">
-    <param name="meetpoint_threshold" value="0.40" type="double" />
+    <param name="meetpoint_threshold" value="0.20" type="double" />
     <param name="do_move"  		value="true"  		type="bool" />
-    <param name="lin_vel" value="0.15" type="double" />
+    <param name="lin_vel" value="0.30" type="double" />
     <param name="ang_vel" value="0.15" type="double" />
   </node>
 </launch>
