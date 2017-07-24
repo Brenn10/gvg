@@ -49,7 +49,7 @@ void handle_obstacles(const laser_node::Obstacles::ConstPtr& msg) {
     m.action = visualization_msgs::Marker::ADD;
     m.scale.x = 0.03;
 
-    m.color.a = 1;   m.color.r = (i/2)%2;   m.color.g = ((i+1)/2)%2;  m.color.b = (i/3)%2;
+    m.color.a = 1;   m.color.r = i%2;   m.color.g = (i+1)%2;  m.color.b = (i/2)%2;
 
     std::vector<geometry_msgs::Point> pts;
     for (int j = 0; j < (int) msg->collection.at(i).surface.size(); j++) {

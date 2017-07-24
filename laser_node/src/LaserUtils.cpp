@@ -116,10 +116,10 @@ void LaserUtils::handleLaserScan(const sensor_msgs::LaserScan::ConstPtr& msg) {
 
   // Clean the lidar scan in case of static in the scan(Issues around [600,700])
   if(DO_CLEAN_LIDAR){
-    for (int i = 10; i < (int) msg->ranges.size()-10; i++) {
+    for (int i = 0; i < (int) msg->ranges.size(); i++) {
       if(msg->ranges.at(i) < 1.5){
         int m=0;
-        for(int j =i-10; j < i+10; j++)
+        for(int j = max(i-10,0); j < min(i+10,(int) msg->ranges.size()); j++)
         {
           m=msg->ranges.at(j) > m ? msg->ranges.at(i) : m;
         }

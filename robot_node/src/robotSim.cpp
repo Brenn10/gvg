@@ -97,10 +97,28 @@ bool robotSim::relTranslate(robot_node::RelTranslate::Request& req,
   return true;
 }
 
+/*
+ converts a quaternion to yaw
+*/
+float quatToYaw(geometry_msgs::Quaternion q)
+{
+  double ysqr = q.y * q.y;
+  double t3 = +2.0 * (q.w * q.z + q.x * q.y);
+	double t4 = +1.0 - 2.0 * (ysqr + q.z * q.z);
+	return std::atan2(t3, t4);
+}
+/*
+gives the distance between two euler angles
+*/
+float ang_dist(float a,float b)
+{
+  return 180.0 - std::fabs(std::fmod(std::fabs(a - b), 360.0) - 180.0);
+}
 /* TODO: bug fix, relrotate can only handle < 90 degree turns. Also ang velocity should be recalculated depending on the angle */
 bool robotSim::relRotate(robot_node::RelRotate::Request& req,
 			   robot_node::RelRotate::Response& res) {
 
+/*
   double ang_vel = req.dtheta_rad >= 0 ? std::abs(req.ang_speed) : (-std::abs(req.ang_speed));
   ros::Duration dt(std::abs(req.dtheta_rad)/std::abs(req.ang_speed));
   ros::Time start = ros::Time::now();
@@ -110,9 +128,22 @@ bool robotSim::relRotate(robot_node::RelRotate::Request& req,
     ros::spinOnce();
     loop_rate.sleep();
   }
+*/
+
+  float before = quatToYaw(odom.pose.pose.orientation);
+  float after = quatToYaw(odom.pose.pose.orientation);
+  double ang_vel = req.dtheta_rad>0 ? req.ang_speed : -req.ang_speed;
+  ros::Rate loop_rate(10);
+  while (ang_dist(after,before) < abs(req.dtheta_rad)) {
+    move(0, ang_vel);
+    ros::spinOnce();
+    loop_rate.sleep();
+    after = quatToYaw(odom.pose.pose.orientation);
+  }
 
   res.success = true;
   return true;
+
 }
 
 /* Stop the robot */
